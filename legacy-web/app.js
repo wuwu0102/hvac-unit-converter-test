@@ -395,9 +395,29 @@ function initializeCard(card) {
   return true;
 }
 
+function initializeNavigation() {
+  const pages = Array.from(document.querySelectorAll('.page'));
+  const homeId = 'home-page';
+
+  function showPage(pageId) {
+    pages.forEach((page) => {
+      page.classList.toggle('active', page.id === pageId);
+    });
+  }
+
+  document.querySelectorAll('[data-nav-target]').forEach((button) => {
+    button.addEventListener('click', () => showPage(button.dataset.navTarget));
+  });
+
+  document.querySelectorAll('[data-nav-home]').forEach((button) => {
+    button.addEventListener('click', () => showPage(homeId));
+  });
+}
+
 function startApp() {
   const cards = Array.from(document.querySelectorAll('.card'));
   cards.forEach((card) => initializeCard(card));
+  initializeNavigation();
 }
 
 if (document.readyState === 'loading') {
