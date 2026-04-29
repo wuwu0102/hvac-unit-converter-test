@@ -1,0 +1,13 @@
+name: iOS Build Only Manual
+
+on:
+  workflow_dispatch:
+
+jobs:
+  ios-build-info:
+    runs-on: ubuntu-latest
+    steps:
+      - name: iOS build note
+        run: |
+          echo "iOS builds are manual only."
+          echo "Production/TestFlight release requires macOS + Xcode + signing credentials."

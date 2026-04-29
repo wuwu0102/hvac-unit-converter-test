@@ -1,0 +1,12 @@
+{
+  "name": "HVAC Unit Converter",
+  "short_name": "HVAC Converter",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F4F7FC",
+  "theme_color": "#2563EB",
+  "description": "HVAC unit converter",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": []
+}
