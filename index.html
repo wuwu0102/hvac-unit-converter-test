@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>HVAC Unit Converter V0.13</title>
+    <style id="ios-safe-area-fix">
+      html, body {
+        margin: 0;
+        padding-top: max(48px, env(safe-area-inset-top));
+        box-sizing: border-box;
+      }
+      body {
+        min-height: 100vh;
+      }
+    </style>
     <style>
       :root {
         color-scheme: light;
@@ -23,6 +33,13 @@
         padding: 14px 12px; cursor: pointer;
       }
       .back-btn { margin-bottom: 14px; background: #334155; font-size: 20px; }
+      .feedback-entry { margin-top: 16px; display: flex; justify-content: center; }
+      .feedback-btn { border: 1px solid #1d4ed8; border-radius: 999px; background: #eff6ff; color: #1d4ed8; padding: 8px 14px; font-size: 15px; font-weight: 600; cursor: pointer; }
+      .feedback-form { display: grid; gap: 10px; }
+      textarea { width: 100%; min-height: 110px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; font-size: 16px; resize: vertical; }
+      .feedback-actions { display: grid; gap: 10px; }
+      .feedback-submit { background: #1d4ed8; color: #fff; border: 0; border-radius: 10px; min-height: 46px; font-size: 18px; font-weight: 700; cursor: pointer; }
+      .feedback-hint { margin: 0; color: #b45309; font-size: 14px; line-height: 1.4; }
       .card {
         background: #fff; border: 1px solid #dbe3ef; border-radius: 14px;
         padding: 16px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
@@ -69,8 +86,34 @@
           <button class="menu-button" data-nav-target="three-phase-page">三相電力估算</button>
           <button class="menu-button" data-nav-target="single-phase-page">單相電力估算</button>
         </div>
+        <div class="feedback-entry">
+          <button class="feedback-btn" data-nav-target="feedback-page">意見回饋</button>
+        </div>
       </section>
 
+
+      <section class="page" id="feedback-page">
+        <button class="back-btn" data-nav-home>返回首頁</button>
+        <article class="card">
+          <h2>意見回饋</h2>
+          <form class="feedback-form" id="feedback-form">
+            <label class="form-label" for="feedback-message">留言</label>
+            <textarea id="feedback-message" required placeholder="請輸入您的意見"></textarea>
+
+            <label class="form-label" for="feedback-contact">聯絡方式（選填）</label>
+            <input id="feedback-contact" type="text" placeholder="例如 Email 或電話" />
+
+            <label class="form-label" for="feedback-screenshot">截圖上傳（選填）</label>
+            <input id="feedback-screenshot" type="file" accept="image/*" />
+            <p class="feedback-hint" id="feedback-file-hint" hidden>由於系統限制，請在郵件開啟後手動附上剛剛選擇的截圖。</p>
+
+            <div class="feedback-actions">
+              <button type="submit" class="feedback-submit">送出</button>
+              <button type="button" class="back-btn" data-nav-home>返回首頁</button>
+            </div>
+          </form>
+        </article>
+      </section>
       <section class="page" id="temp-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="temp"><h2>溫度換算</h2><section class="form-section"><label class="form-label">輸入溫度</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="C">C</option><option value="F">F</option></select></div></section><div class="result">結果：-</div></article></section>
       <section class="page" id="airflow-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="airflow"><h2>流量換算</h2><section class="form-section"><label class="form-label">輸入流量</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="CFM">CFM</option><option value="CMH">CMH</option><option value="m3/s">m3/s</option><option value="L/s">L/s</option><option value="LPM">LPM</option><option value="CMM">CMM</option></select></div></section><ul class="result-list" data-role="result-list"></ul></article></section>
       <section class="page" id="pressure-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="pressure"><h2>壓力換算</h2><section class="form-section"><label class="form-label">輸入壓力</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="Pa">Pa</option><option value="kPa">kPa</option><option value="mmAq">mmAq</option><option value="bar">bar</option><option value="psi">psi</option><option value="N/m2">N/m2</option></select></div></section><ul class="result-list" data-role="result-list"></ul></article></section>
