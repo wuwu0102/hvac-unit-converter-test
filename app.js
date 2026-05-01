@@ -417,38 +417,25 @@ function initializeNavigation() {
 
 
 function initializeFeedbackForm() {
-  const form = document.querySelector('#feedback-form');
-  const messageInput = document.querySelector('#feedback-message');
-  const contactInput = document.querySelector('#feedback-contact');
-  const screenshotInput = document.querySelector('#feedback-screenshot');
-  const fileHint = document.querySelector('#feedback-file-hint');
+  const googleFormButton = document.querySelector('#feedback-google-form');
+  const emailButton = document.querySelector('#feedback-email');
 
-  if (!form || !messageInput || !contactInput || !screenshotInput || !fileHint) return false;
+  if (!googleFormButton || !emailButton) return false;
 
-  screenshotInput.addEventListener('change', () => {
-    fileHint.hidden = !screenshotInput.files || screenshotInput.files.length === 0;
+  googleFormButton.addEventListener('click', () => {
+    const url = 'https://docs.google.com/forms/d/e/1FAIpQLSc95R0vPbKHLP9kP4MkCxsTVxk0aHTw4iCqlEHNb-Aa6RSWNQ/viewform';
+    window.open(url, '_blank');
   });
 
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-
-    const message = (messageInput.value || '').trim();
-    if (!message) return;
-
-    const contact = (contactInput.value || '').trim() || '未提供';
-    const hasScreenshot = screenshotInput.files && screenshotInput.files.length > 0;
-    const bodyLines = [
-      `使用者留言：${message}`,
-      `聯絡方式：${contact}`,
-      `userAgent：${navigator.userAgent}`,
-      hasScreenshot
-        ? '提醒：由於系統限制，請在郵件開啟後手動附上剛剛選擇的截圖。'
-        : '提醒：如需附圖，請在郵件開啟後手動附上截圖。'
-    ];
-
+  emailButton.addEventListener('click', () => {
+    const body = encodeURIComponent([
+      '留言：',
+      '聯絡方式：',
+      '使用裝置：',
+      navigator.userAgent
+    ].join('\n'));
     const subject = encodeURIComponent('HVAC Unit Converter 意見回饋');
-    const body = encodeURIComponent(bodyLines.join('\n'));
-    window.location.href = `mailto:your-email@example.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:chttwm@gmail.com?subject=${subject}&body=${body}`;
   });
 
   return true;

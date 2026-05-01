@@ -39,12 +39,10 @@
       }
       .back-btn { margin-bottom: 14px; background: #334155; font-size: 20px; }
       .feedback-entry { margin-top: 14px; display: flex; justify-content: center; }
-      .feedback-link { border: 1px solid #1d4ed8; border-radius: 999px; background: #eff6ff; color: #1d4ed8; padding: 7px 14px; font-size: 14px; font-weight: 600; cursor: pointer; min-height: 36px; }
-      .feedback-form { display: grid; gap: 10px; }
-      textarea { width: 100%; min-height: 130px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 12px; font-size: 16px; line-height: 1.5; resize: vertical; }
-      .feedback-actions { display: grid; gap: 10px; }
-      .feedback-submit { background: #1d4ed8; color: #fff; border: 0; border-radius: 10px; min-height: 46px; font-size: 18px; font-weight: 700; cursor: pointer; }
-      .feedback-hint { margin: 0; color: #b45309; font-size: 14px; line-height: 1.4; }
+      .feedback-entry .menu-button { width: min(100%, 280px); }
+      .feedback-actions { display: grid; gap: 10px; justify-items: center; }
+      .feedback-actions .menu-button { width: min(100%, 320px); }
+      .feedback-hint { margin: 10px 0 0; color: #b45309; font-size: 14px; line-height: 1.4; text-align: center; }
       .card {
         background: #fff; border: 1px solid #dbe3ef; border-radius: 14px;
         padding: 16px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
@@ -92,7 +90,7 @@
           <button class="menu-button" data-nav-target="single-phase-page">單相電力估算</button>
         </div>
         <div class="feedback-entry">
-          <button class="feedback-link" data-nav-target="feedback-page">意見回饋</button>
+          <button class="menu-button" data-nav-target="feedback-page">意見回饋</button>
         </div>
       </section>
 
@@ -100,23 +98,12 @@
       <section class="page" id="feedback-page">
         <button class="back-btn" data-nav-home>返回首頁</button>
         <article class="card">
-          <h2>意見回饋</h2>
-          <form class="feedback-form" id="feedback-form">
-            <label class="form-label" for="feedback-message">留言內容</label>
-            <textarea id="feedback-message" required placeholder="請輸入您的意見"></textarea>
-
-            <label class="form-label" for="feedback-contact">聯絡方式（選填）</label>
-            <input id="feedback-contact" type="text" placeholder="例如 Email 或電話" />
-
-            <label class="form-label" for="feedback-screenshot">截圖上傳（選填）</label>
-            <input id="feedback-screenshot" type="file" accept="image/*" />
-            <p class="feedback-hint" id="feedback-file-hint" hidden>由於系統限制，請在郵件開啟後手動附上剛剛選擇的截圖。</p>
-
-            <div class="feedback-actions">
-              <button type="submit" class="feedback-submit">送出</button>
-              <button type="button" class="back-btn" data-nav-home>返回首頁</button>
-            </div>
-          </form>
+          <h2>HVAC Unit Converter 意見回饋</h2>
+          <div class="feedback-actions">
+            <button type="button" class="menu-button" id="feedback-google-form">完整回饋（推薦）</button>
+            <button type="button" class="menu-button" id="feedback-email">快速 Email 回饋</button>
+          </div>
+          <p class="feedback-hint">如需附截圖，請使用 Google 表單上傳</p>
         </article>
       </section>
       <section class="page" id="temp-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="temp"><h2>溫度換算</h2><section class="form-section"><label class="form-label">輸入溫度</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="C">C</option><option value="F">F</option></select></div></section><div class="result">結果：-</div></article></section>
