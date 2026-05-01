@@ -447,7 +447,7 @@ function initializeFeedbackForm() {
     ];
 
     const subject = encodeURIComponent('HVAC Unit Converter 意見回饋');
-    TEMP
+    const body = encodeURIComponent(bodyLines.join('\n'));
     window.location.href = `mailto:your-email@example.com?subject=${subject}&body=${body}`;
   });
 
