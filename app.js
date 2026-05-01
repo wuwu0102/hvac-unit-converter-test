@@ -415,10 +415,50 @@ function initializeNavigation() {
   });
 }
 
+
+function initializeFeedbackForm() {
+  const form = document.querySelector('#feedback-form');
+  const messageInput = document.querySelector('#feedback-message');
+  const contactInput = document.querySelector('#feedback-contact');
+  const screenshotInput = document.querySelector('#feedback-screenshot');
+  const fileHint = document.querySelector('#feedback-file-hint');
+
+  if (!form || !messageInput || !contactInput || !screenshotInput || !fileHint) return false;
+
+  screenshotInput.addEventListener('change', () => {
+    fileHint.hidden = !screenshotInput.files || screenshotInput.files.length === 0;
+  });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+
+    const message = (messageInput.value || '').trim();
+    if (!message) return;
+
+    const contact = (contactInput.value || '').trim() || '未提供';
+    const hasScreenshot = screenshotInput.files && screenshotInput.files.length > 0;
+    const bodyLines = [
+      `使用者留言：${message}`,
+      `聯絡方式：${contact}`,
+      `userAgent：${navigator.userAgent}`,
+      hasScreenshot
+        ? '提醒：由於系統限制，請在郵件開啟後手動附上剛剛選擇的截圖。'
+        : '提醒：如需附圖，請在郵件開啟後手動附上截圖。'
+    ];
+
+    const subject = encodeURIComponent('HVAC Unit Converter 意見回饋');
+    TEMP
+    window.location.href = `mailto:your-email@example.com?subject=${subject}&body=${body}`;
+  });
+
+  return true;
+}
+
 function startApp() {
   const cards = Array.from(document.querySelectorAll('.card'));
   cards.forEach((card) => initializeCard(card));
   initializeNavigation();
+  initializeFeedbackForm();
 }
 
 if (document.readyState === 'loading') {
