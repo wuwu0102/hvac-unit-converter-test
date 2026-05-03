@@ -122,7 +122,12 @@ const pipeSizeList = [
   { a: '80A', inchDn: '3" / DN80', innerDiameterMm: 77.9 },
   { a: '100A', inchDn: '4" / DN100', innerDiameterMm: 102.3 },
   { a: '125A', inchDn: '5" / DN125', innerDiameterMm: 128.2 },
-  { a: '150A', inchDn: '6" / DN150', innerDiameterMm: 154.1 }
+  { a: '150A', inchDn: '6" / DN150', innerDiameterMm: 154.1 },
+  { a: '200A', inchDn: '8" / DN200', innerDiameterMm: 202.7 },
+  { a: '250A', inchDn: '10" / DN250', innerDiameterMm: 254.5 },
+  { a: '300A', inchDn: '12" / DN300', innerDiameterMm: 303.2 },
+  { a: '350A', inchDn: '14" / DN350', innerDiameterMm: 333.4 },
+  { a: '400A', inchDn: '16" / DN400', innerDiameterMm: 381.0 }
 ];
 
 function formatNumber(value) {
@@ -178,15 +183,15 @@ function initializePipeSuggestCard(card) {
     if (!Number.isFinite(flowLpm) || flowLpm <= 0) return reset();
 
     const flowM3s = flowLpm / 60000;
-    const candidate = pipeSizeList.find((pipe) => {
-      const velocity = flowM3s / getPipeAreaM2(pipe);
-      const limit = Number.parseInt(pipe.a, 10) <= 40 ? 1.2 : 3.0;
-      return velocity <= limit;
-    }) || pipeSizeList[pipeSizeList.length - 1];
-
-    const velocity = flowM3s / getPipeAreaM2(candidate);
-    updateResultRow(result, 'dp-key', 'dp-value', '建議管徑', `${candidate.a} / ${candidate.inchDn}`);
-    updateResultRow(result, 'dp-key', 'dp-value', '參考流速（m/s）', formatNumber(velocity));
+    const evaluations = pipeSizeList.map((pipe) => ({ pipe, velocity: flowM3s / getPipeAreaM2(pipe) }));
+    const candidate = evaluations.find((e) => e.velocity <= 3.0);
+    if (!candidate) {
+      updateResultRow(result, 'dp-key', 'dp-value', '建議管徑', '超出表內管徑，請分管或加大管徑');
+      updateResultRow(result, 'dp-key', 'dp-value', '參考流速（m/s）', '-');
+      return;
+    }
+    updateResultRow(result, 'dp-key', 'dp-value', '建議管徑', `${candidate.pipe.a} / ${candidate.pipe.inchDn}`);
+    updateResultRow(result, 'dp-key', 'dp-value', '參考流速（m/s）', formatNumber(candidate.velocity));
   }
 
   flowInput.addEventListener('input', update);
