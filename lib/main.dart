@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'core/pipe_sizing.dart';
+import 'core/unit_conversion.dart';
 import 'package:flutter/services.dart';
 
 void main() {
@@ -499,10 +501,9 @@ class _ConverterHomePageState extends State<ConverterHomePage> {
   Widget _pipeSuggestionCard() {
     final inputValue = _parsePositive(_pipeFlowController.text);
     final flowLpm = inputValue == null ? null : convertToLpm(inputValue, _pipeFlowUnit);
-    final flowM3s = flowLpm == null ? null : flowLpm / 60000;
-    final suggestion = flowM3s == null ? null : _suggestPipe(flowM3s);
+    final suggestion = flowLpm == null ? null : PipeSizing.suggest(flowLpm);
     return _converterCard(
-      title: '流量對應管徑',
+      title: '水管管徑建議',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -527,22 +528,21 @@ class _ConverterHomePageState extends State<ConverterHomePage> {
           const SizedBox(height: 8),
           Padding(
             padding: _hintVerticalPadding,
-            child: Text('以建議流速 1.2~3.0 m/s 範圍快速挑選可用管徑。', style: _hintStyle),
+            child: Text('水管建議流速：1.2～3.0 m/s；最大控制流速：3.0 m/s。', style: _hintStyle),
           ),
           const SizedBox(height: 10),
           _resultRows({
             '輸入流量（LPM）': flowLpm == null ? '-' : _formatNumber(flowLpm),
-            '建議管徑': suggestion == null ? '-' : '${suggestion.pipe.a} / ${suggestion.pipe.inchDn}',
-            '參考流速（m/s）': suggestion == null ? '-' : _formatNumber(suggestion.velocity),
+            '建議管徑': suggestion?.recommended?.pipe.label ?? '-',
+            '參考流速（m/s）': suggestion?.recommended == null ? '-' : _formatNumber(suggestion!.recommended!.velocityMps),
+            '判定': suggestion?.message ?? '-',
           }),
-          if (suggestion?.exceedsRecommendedRange ?? false)
-            Padding(
-              padding: _hintVerticalPadding,
-              child: Text(
-                '已超出建議流速範圍',
-                style: _hintStyle.copyWith(color: Colors.red),
-              ),
-            ),
+          if (flowLpm != null && suggestion != null)
+            ...suggestion.candidates.map((c) => Text('${c.pipe.nominalA} | 內徑 ${c.pipe.insideDiameterMm} mm | ${_formatNumber(c.velocityMps)} m/s | ${c.judgement == PipeVelocityJudgement.overspeed ? '超速，不建議' : c.judgement == PipeVelocityJudgement.recommended ? '建議' : '偏低但可用'}')),
+          Padding(
+            padding: _hintVerticalPadding,
+            child: Text('依常用 HVAC chilled water / condenser water / hydronic piping design practice，管徑初選需同時考量流速、壓損、噪音、沖蝕與泵浦能耗；本工具為初步估算，最終仍需依專案規範與壓損計算確認。', style: _hintStyle),
+          ),
         ],
       ),
     );

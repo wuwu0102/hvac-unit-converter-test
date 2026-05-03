@@ -45,3 +45,9 @@ HVAC 單位轉換工具（中文優先、手機版優先）。
 - `iOS Build Only Manual` workflow 僅支援手動觸發（`workflow_dispatch`）。
 - iOS 上架仍需 Mac / Xcode / code signing，GitHub Actions 目前只做手動測試用途。
 
+
+## 計算依據與限制
+- 本工具為 HVAC 工程初選估算工具。
+- 水管初選以 1.2～3.0 m/s 為建議範圍。
+- 3.0 m/s 為本工具預設最大控制值。
+- 實際設計仍須依材質、管厚、管路長度、局部損失、閥件、泵浦揚程、噪音、沖蝕、業主規範與 ASHRAE/CIBSE/專案規範確認。
