@@ -2,21 +2,6 @@ App Review Notes:
 
 This app has been updated to provide professional HVAC and data center engineering functionality beyond a simple unit converter.
 
-Key features:
-- HVAC unit conversion tools
-- Air change ventilation calculator based on room volume and ACH
-- Cooling load estimation
-- Airflow calculation
-- Data center room estimator for rack load, heat dissipation, power consumption, and 380V three-phase current estimation
-
-The app is intended for HVAC engineers, technicians, and data center cooling planners who need quick reference calculations in the field.
-
-The app does not require login.
-The app does not use external services.
-The app does not collect user data.
-The app functions the same across all regions.
-All calculations are local on device.
-
 Suggested App Review Reply:
 
 Hello App Review Team,
@@ -27,9 +12,10 @@ We have significantly enhanced the app to provide professional HVAC and data cen
 
 The updated app now includes:
 - HVAC unit conversion tools
+- Pipe sizing and differential pressure flow estimation
 - Air change ventilation calculation based on room dimensions and ACH
 - Cooling load estimation
-- Airflow calculation
+- Airflow calculation based on cooling load and temperature difference
 - Data center room load estimation
 - Rack-based heat dissipation calculation
 - Power consumption and 380V three-phase current estimation
