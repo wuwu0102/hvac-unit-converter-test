@@ -1,123 +1,79 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HVAC Unit Converter V0.13</title>
-    <style id="ios-safe-area-fix">
-      html, body {
-        margin: 0;
-        padding-top: max(48px, env(safe-area-inset-top));
-        box-sizing: border-box;
-      }
-      body {
-        min-height: 100vh;
-      }
-    </style>
-    <style>
-      :root {
-        color-scheme: light;
-        font-family: "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
-      }
-      * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        padding: max(48px, env(safe-area-inset-top)) 16px 16px;
-        background: #f4f7fc;
-        color: #0f172a;
-      }
-      .container { max-width: 820px; margin: 0 auto; }
-      h1 { margin: 0 0 16px; font-size: 32px; line-height: 1.2; }
-      h2 { margin: 0 0 14px; font-size: 28px; }
-      .page { display: none; }
-      .page.active { display: block; }
-      .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-      .menu-button, .back-btn {
-        width: 100%; min-height: 52px; border: 0; border-radius: 12px;
-        background: #1d4ed8; color: #fff; font-size: 22px; font-weight: 700;
-        padding: 14px 12px; cursor: pointer;
-      }
-      .back-btn { margin-bottom: 14px; background: #334155; font-size: 20px; }
-      .feedback-entry { margin-top: 14px; display: flex; justify-content: center; }
-      .feedback-entry .menu-button { width: min(100%, 280px); }
-      .feedback-actions { display: grid; gap: 10px; justify-items: center; }
-      .feedback-actions .menu-button { width: min(100%, 320px); }
-      .feedback-hint { margin: 10px 0 0; color: #b45309; font-size: 14px; line-height: 1.4; text-align: center; }
-      .card {
-        background: #fff; border: 1px solid #dbe3ef; border-radius: 14px;
-        padding: 16px; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
-      }
-      .form-section, .result-section { margin-bottom: 16px; }
-      .section-title { margin: 0 0 10px; font-size: 24px; }
-      .form-label, .hint, .sub-note { display: block; margin: 0 0 8px; font-size: 18px; line-height: 1.5; }
-      .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-      .row-single { display: grid; grid-template-columns: 1fr; }
-      .field { margin-bottom: 12px; }
-      input, select {
-        width: 100%; min-height: 52px; border: 1px solid #cbd5e1; border-radius: 10px;
-        padding: 10px 12px; font-size: 18px; background: #fff;
-      }
-      .result, .result-list, .dp-result { margin: 0; padding: 0; list-style: none; }
-      .result, .result-row, .dp-result li { font-size: 20px; }
-      .result-row, .dp-result li { display: grid; grid-template-columns: minmax(150px, 1fr) 10px minmax(0, 1fr); gap: 8px; margin: 10px 0; }
-      .result-colon { text-align: center; }
-      .result-value, .dp-value { text-align: right; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 20px; }
-      .result-highlight { font-size: 22px; font-weight: 700; }
-      @media (max-width: 680px) {
-        .menu-grid { grid-template-columns: 1fr; }
-        h1 { font-size: 30px; }
-        h2 { font-size: 28px; }
-        .row, .result-row, .dp-result li { grid-template-columns: 1fr; }
-        .result-colon { display: none; }
-        .result-value, .dp-value { text-align: left; }
-      }
-    </style>
+    <title>HVAC Engineering Toolkit V0.16</title>
+    <link rel="stylesheet" href="./styles.css?v=20260505-1630" />
   </head>
   <body>
-    <main class="container">
-      <section class="page active" id="home-page">
-        <h1>HVAC 單位換算工具</h1>
-        <div class="menu-grid">
-          <button class="menu-button" data-nav-target="temp-page">溫度換算</button>
-          <button class="menu-button" data-nav-target="airflow-page">流量換算</button>
-          <button class="menu-button" data-nav-target="pressure-page">壓力換算</button>
-          <button class="menu-button" data-nav-target="velocity-page">流速換算</button>
-          <button class="menu-button" data-nav-target="pipe-page">水管管徑建議</button>
-          <button class="menu-button" data-nav-target="dp-page">壓差估算流量</button>
-          <button class="menu-button" data-nav-target="electrical-page">電力單位換算</button>
-          <button class="menu-button" data-nav-target="current-page">kW估算電流</button>
-          <button class="menu-button" data-nav-target="three-phase-page">三相電力估算</button>
-          <button class="menu-button" data-nav-target="single-phase-page">單相電力估算</button>
-        </div>
-        <div class="feedback-entry">
-          <button class="menu-button" data-nav-target="feedback-page">意見回饋</button>
-        </div>
+    <main class="shell">
+      <header class="hero">
+        <p class="version">Web V0.16</p>
+        <h1>HVAC Engineering Toolkit</h1>
+        <p class="subtitle">Professional HVAC and data center cooling calculations</p>
+      </header>
+
+      <nav class="tool-nav" aria-label="Main Tools">
+        <button class="tool-tab active" data-tab="unit">Unit Converter</button>
+        <button class="tool-tab" data-tab="vent">Ventilation</button>
+        <button class="tool-tab" data-tab="cool">Cooling Load</button>
+        <button class="tool-tab" data-tab="air">Airflow</button>
+        <button class="tool-tab" data-tab="dc">Data Center Room</button>
+        <button class="tool-tab" data-tab="power">Power Estimate</button>
+      </nav>
+
+      <section class="tool-card active" data-panel="unit">
+        <h2>Unit Converter</h2>
+        <p class="formula-note">Use app version for full converter set.</p>
       </section>
 
-
-      <section class="page" id="feedback-page">
-        <button class="back-btn" data-nav-home>返回首頁</button>
-        <article class="card">
-          <h2>HVAC Unit Converter 意見回饋</h2>
-          <div class="feedback-actions">
-            <button type="button" class="menu-button" id="feedback-google-form">完整回饋（推薦）</button>
-            <button type="button" class="menu-button" id="feedback-email">快速 Email 回饋</button>
-          </div>
-          <p class="feedback-hint">如需附截圖，請使用 Google 表單上傳</p>
-        </article>
+      <section class="tool-card" data-panel="vent">
+        <h2>換氣量計算 / Air Change Ventilation Calculator</h2>
+        <p class="formula-note">This tool estimates required ventilation airflow from room volume and air changes per hour.</p>
+        <div class="grid two-col">
+          <label class="field"><span>Length</span><input id="v-l" type="number" step="any" /></label>
+          <label class="field"><span>Unit</span><select id="v-lu"><option>m</option><option>cm</option></select></label>
+          <label class="field"><span>Width</span><input id="v-w" type="number" step="any" /></label>
+          <label class="field"><span>Unit</span><select id="v-wu"><option>m</option><option>cm</option></select></label>
+          <label class="field"><span>Height</span><input id="v-h" type="number" step="any" /></label>
+          <label class="field"><span>Unit</span><select id="v-hu"><option>m</option><option>cm</option></select></label>
+          <label class="field"><span>ACH</span><input id="v-ach" type="number" step="any" /></label>
+        </div>
+        <div class="result-box" id="v-result">-</div>
       </section>
-      <section class="page" id="temp-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="temp"><h2>溫度換算</h2><section class="form-section"><label class="form-label">輸入溫度</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="C">C</option><option value="F">F</option></select></div></section><div class="result">結果：-</div></article></section>
-      <section class="page" id="airflow-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="airflow"><h2>流量換算</h2><section class="form-section"><label class="form-label">輸入流量</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="CFM">CFM</option><option value="CMH">CMH</option><option value="m3/s">m3/s</option><option value="L/s">L/s</option><option value="LPM">LPM</option><option value="CMM">CMM</option></select></div></section><ul class="result-list" data-role="result-list"></ul></article></section>
-      <section class="page" id="pressure-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="pressure"><h2>壓力換算</h2><section class="form-section"><label class="form-label">輸入壓力</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="Pa">Pa</option><option value="kPa">kPa</option><option value="mmAq">mmAq</option><option value="bar">bar</option><option value="psi">psi</option><option value="N/m2">N/m2</option></select></div></section><ul class="result-list" data-role="result-list"></ul></article></section>
-      <section class="page" id="velocity-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="velocity"><h2>流速換算</h2><section class="form-section"><label class="form-label">輸入流速</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" /><select data-role="from-unit"><option value="m/s">m/s</option><option value="ft/s">ft/s</option><option value="mm/s">mm/s</option><option value="cm/s">cm/s</option></select></div></section><ul class="result-list" data-role="result-list"></ul></article></section>
-      <section class="page" id="pipe-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="pipe-suggest"><h2>水管管徑建議</h2><section class="form-section"><label class="form-label">設計流量（LPM）</label><input type="number" step="any" data-role="pipe-flow" placeholder="例如 300" /><p class="hint">以建議流速 1.2~3.0 m/s 範圍快速挑選可用管徑。</p></section><ul class="dp-result" data-role="pipe-result"><li><span class="dp-key">建議管徑</span><span class="result-colon">:</span><span class="dp-value">-</span></li><li><span class="dp-key">參考流速（m/s）</span><span class="result-colon">:</span><span class="dp-value">-</span></li></ul></article></section>
-      <section class="page" id="dp-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="dp-flow"><h2>壓差估算流量（設備修正）</h2><section class="form-section"><h3 class="section-title">目前量測條件</h3><div class="field"><label class="form-label">目前量測壓差</label><div class="row"><input type="number" step="any" data-role="dp-measured" placeholder="例如 0.5" /><select data-role="dp-measured-unit"><option value="kPa">kPa</option><option value="mAq">mAq</option><option value="bar">bar</option><option value="psi">psi</option></select></div></div><div class="field"><label class="form-label">使用管徑</label><div class="row-single"><select data-role="dp-pipe-size"><option value="15A">15A</option><option value="20A">20A</option><option value="25A">25A</option><option value="32A">32A</option><option value="40A">40A</option><option value="50A">50A</option><option value="65A">65A</option><option value="80A">80A</option><option value="100A">100A</option><option value="125A">125A</option><option value="150A">150A</option></select></div></div></section><section class="result-section"><h3 class="section-title">預估流量</h3><ul class="dp-result" data-role="dp-result"><li><span class="dp-key">預估流量（LPM）</span><span class="result-colon">:</span><span class="dp-value">-</span></li></ul><p class="sub-note">（依壓差平方關係推估）</p></section><section class="form-section"><h3 class="section-title">進階設定：設備已知條件（可選）</h3><p class="hint">若有設備選機表，可填入「某流量下的水側壓損」作為修正基準。若不清楚，可使用預設值快速估算。</p><div class="field"><label class="form-label">參考流量（LPM）</label><input type="number" step="any" data-role="dp-ref-flow" value="300" placeholder="例如 300" /></div><div class="field"><label class="form-label">對應水側壓損</label><div class="row"><input type="number" step="any" data-role="dp-ref-loss" value="30" placeholder="例如 30" /><select data-role="dp-ref-loss-unit"><option value="kPa">kPa</option><option value="mAq">mAq</option><option value="bar">bar</option></select></div></div></section></article></section>
-      <section class="page" id="electrical-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="electrical-conversion"><h2>電力單位換算</h2><section class="form-section"><label class="form-label">輸入功率</label><div class="row"><input type="number" step="any" placeholder="請輸入數值" data-role="power-value" /><select data-role="power-unit"><option value="W">W</option><option value="kW">kW</option><option value="MW">MW</option><option value="HP">HP</option></select></div></section><section class="result-section"><ul class="result-list" data-role="result-list"></ul></section></article></section>
-      <section class="page" id="three-phase-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="three-phase-power"><h2>三相電力估算</h2><section class="form-section"><div class="field"><label class="form-label">電壓 V</label><input type="number" step="any" data-role="voltage" placeholder="例如 380" /></div><div class="field"><label class="form-label">電流 A</label><input type="number" step="any" data-role="current" placeholder="例如 30" /></div><div class="field"><label class="form-label">功率因數 PF</label><input type="number" step="any" data-role="pf" value="0.85" placeholder="預設 0.85" /></div></section><section class="result-section"><ul class="dp-result" data-role="three-phase-result"><li><span class="dp-key">視在功率（kVA）</span><span class="result-colon">:</span><span class="dp-value result-highlight">-</span></li><li><span class="dp-key">有效功率（kW）</span><span class="result-colon">:</span><span class="dp-value result-highlight">-</span></li></ul></section></article></section>
-      <section class="page" id="single-phase-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="single-phase-power"><h2>單相電力估算</h2><section class="form-section"><div class="field"><label class="form-label">電壓 V</label><input type="number" step="any" data-role="voltage" placeholder="例如 220" /></div><div class="field"><label class="form-label">電流 A</label><input type="number" step="any" data-role="current" placeholder="例如 15" /></div><div class="field"><label class="form-label">功率因數 PF</label><input type="number" step="any" data-role="pf" value="1" placeholder="預設 1.0" /></div></section><section class="result-section"><ul class="dp-result" data-role="single-phase-result"><li><span class="dp-key">視在功率（kVA）</span><span class="result-colon">:</span><span class="dp-value result-highlight">-</span></li><li><span class="dp-key">有效功率（kW）</span><span class="result-colon">:</span><span class="dp-value result-highlight">-</span></li></ul></section></article></section>
-      <section class="page" id="current-page"><button class="back-btn" data-nav-home>返回首頁</button><article class="card" data-type="current-estimate"><h2>kW估算電流</h2><section class="form-section"><div class="field"><label class="form-label">功率數值</label><input type="number" step="any" data-role="power" placeholder="例如 10" /></div><div class="field"><label class="form-label">功率單位</label><select data-role="power-unit"><option value="W">W</option><option value="kW">kW</option><option value="HP">HP</option></select></div><div class="field"><label class="form-label">電壓 V</label><input type="number" step="any" data-role="voltage" placeholder="例如 380" /></div><div class="field"><label class="form-label">相數</label><select data-role="phase"><option value="three">三相</option><option value="single">單相</option></select></div><div class="field"><label class="form-label">功率因數 PF</label><input type="number" step="any" data-role="pf" value="0.85" placeholder="預設 0.85" /></div></section><section class="result-section"><ul class="dp-result" data-role="current-result"><li><span class="dp-key">預估電流（A）</span><span class="result-colon">:</span><span class="dp-value result-highlight">-</span></li></ul></section></article></section>
+
+      <section class="tool-card" data-panel="cool"><h2>Cooling Load</h2></section>
+      <section class="tool-card" data-panel="air"><h2>Airflow</h2></section>
+
+      <section class="tool-card" data-panel="dc">
+        <h2>機房負載概算 / Data Center Room Estimator</h2>
+        <div class="grid three-col">
+          <label class="field"><span>Rows</span><input id="d-r" type="number" /></label>
+          <label class="field"><span>Racks/Row</span><input id="d-rpr" type="number" /></label>
+          <label class="field"><span>kW/Rack</span><input id="d-k" type="number" step="any" /></label>
+          <label class="field"><span>Length</span><input id="d-l" type="number" step="any" /></label>
+          <label class="field"><span>Width</span><input id="d-w" type="number" step="any" /></label>
+          <label class="field"><span>Height</span><input id="d-h" type="number" step="any" /></label>
+          <label class="field"><span>People</span><input id="d-p" type="number" value="5" /></label>
+          <label class="field"><span>UPS Factor</span><input id="d-u" type="number" value="0.09" step="any" /></label>
+          <label class="field"><span>Distribution Factor</span><input id="d-df" type="number" value="0.03" step="any" /></label>
+          <label class="field"><span>Lighting W/m²</span><input id="d-ld" type="number" value="21.53" step="any" /></label>
+          <label class="field"><span>Other Ratio</span><input id="d-o" type="number" value="0.14" step="any" /></label>
+          <label class="field"><span>Voltage</span><input id="d-v" type="number" value="380" step="any" /></label>
+          <label class="field"><span>PF</span><input id="d-pf" type="number" value="0.95" step="any" /></label>
+        </div>
+        <div class="result-box" id="d-result">-</div>
+      </section>
+
+      <section class="tool-card" data-panel="power">
+        <h2>Power Estimate</h2>
+        <p>See Data Center Room outputs.</p>
+      </section>
+
+      <div class="result-box">Results are engineering estimates for reference only. Final design should be verified by qualified professionals and project-specific conditions.</div>
     </main>
 
-    <script src="./app.js?v=20260429-2238" defer></script>
+    <script src="./app.js?v=20260505-1630"></script>
   </body>
 </html>
