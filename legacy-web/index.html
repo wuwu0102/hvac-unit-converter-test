@@ -1,10 +1,30 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>HVAC Engineering Toolkit V0.15</title><link rel="stylesheet" href="./styles.css"/></head><body><main class="shell"><header class="hero"><p class="version">Web V0.15</p><h1>HVAC Engineering Toolkit</h1><p class="subtitle">Professional HVAC and data center cooling calculations</p></header>
-<nav class="tool-nav" aria-label="Main Tools">
-<button class="tool-tab active" data-tab="unit">Unit Converter</button><button class="tool-tab" data-tab="vent">Ventilation</button><button class="tool-tab" data-tab="cool">Cooling Load</button><button class="tool-tab" data-tab="air">Airflow</button><button class="tool-tab" data-tab="dc">Data Center Room</button><button class="tool-tab" data-tab="power">Power Estimate</button></nav>
-<section class="tool-card active" data-panel="unit"><h2>Unit Converter</h2><p class="formula-note">Use app version for full converter set.</p></section>
-<section class="tool-card" data-panel="vent"><h2>換氣量計算 / Air Change Ventilation Calculator</h2><p class="formula-note">This tool estimates required ventilation airflow from room volume and air changes per hour.</p><div class="grid two-col"><label class="field"><span>Length</span><input id="v-l" type="number" step="any"></label><label class="field"><span>Unit</span><select id="v-lu"><option>m</option><option>cm</option></select></label><label class="field"><span>Width</span><input id="v-w" type="number" step="any"></label><label class="field"><span>Unit</span><select id="v-wu"><option>m</option><option>cm</option></select></label><label class="field"><span>Height</span><input id="v-h" type="number" step="any"></label><label class="field"><span>Unit</span><select id="v-hu"><option>m</option><option>cm</option></select></label><label class="field"><span>ACH</span><input id="v-ach" type="number" step="any"></label></div><div class="result-box" id="v-result">-</div></section>
-<section class="tool-card" data-panel="cool"><h2>Cooling Load</h2></section><section class="tool-card" data-panel="air"><h2>Airflow</h2></section>
-<section class="tool-card" data-panel="dc"><h2>機房負載概算 / Data Center Room Estimator</h2><div class="grid three-col"><label class="field"><span>Rows</span><input id="d-r" type="number"/></label><label class="field"><span>Racks/Row</span><input id="d-rpr" type="number"/></label><label class="field"><span>kW/Rack</span><input id="d-k" type="number" step="any"/></label><label class="field"><span>Length</span><input id="d-l" type="number" step="any"/></label><label class="field"><span>Width</span><input id="d-w" type="number" step="any"/></label><label class="field"><span>Height</span><input id="d-h" type="number" step="any"/></label><label class="field"><span>People</span><input id="d-p" type="number" value="5"/></label><label class="field"><span>UPS Factor</span><input id="d-u" type="number" value="0.09" step="any"/></label><label class="field"><span>Distribution Factor</span><input id="d-df" type="number" value="0.03" step="any"/></label><label class="field"><span>Lighting W/m²</span><input id="d-ld" type="number" value="21.53" step="any"/></label><label class="field"><span>Other Ratio</span><input id="d-o" type="number" value="0.14" step="any"/></label><label class="field"><span>Voltage</span><input id="d-v" type="number" value="380" step="any"/></label><label class="field"><span>PF</span><input id="d-pf" type="number" value="0.95" step="any"/></label></div><div class="result-box" id="d-result">-</div></section>
-<section class="tool-card" data-panel="power"><h2>Power Estimate</h2><p>See Data Center Room outputs.</p></section>
-<div class="result-box">Results are engineering estimates for reference only. Final design should be verified by qualified professionals and project-specific conditions.</div>
-</main><script src="./app.js"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HVAC 空調機房工程工具 V0.17</title>
+    <link rel="stylesheet" href="./styles.css?v=20260505-1710" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <p class="version">Web V0.17</p>
+        <h1>HVAC 空調機房工程工具</h1>
+        <p class="subtitle">空調換算、風量估算、機房散熱、用電與資料中心工程初估</p>
+      </header>
+      <section id="home" class="tool-card active">
+        <h2>工程功能總覽</h2>
+        <div class="category"><h3>A. 基礎單位換算</h3><div class="card-grid" data-group="A"></div></div>
+        <div class="category"><h3>B. 水系統估算</h3><div class="card-grid" data-group="B"></div></div>
+        <div class="category"><h3>C. 空調與通風估算</h3><div class="card-grid" data-group="C"></div></div>
+        <div class="category"><h3>D. 機房 / 資料中心估算</h3><div class="card-grid" data-group="D"></div></div>
+        <div class="category"><h3>E. 電力估算</h3><div class="card-grid" data-group="E"></div></div>
+        <div class="category"><h3>F. 其他</h3><div class="card-grid" data-group="F"></div></div>
+      </section>
+      <section id="tool" class="tool-card"></section>
+      <div class="result-box note">本工具為工程初估用途，實際設計請由專業人員依現場條件複核。</div>
+    </main>
+    <script src="./app.js?v=20260505-1710"></script>
+  </body>
+</html>
