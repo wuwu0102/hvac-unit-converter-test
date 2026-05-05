@@ -9,7 +9,7 @@ label{font-weight:700;font-size:.95rem} .help{display:block;color:var(--muted);m
 input,select{width:100%;min-height:42px;padding:8px;border:1px solid #9db1c7;border-radius:8px}.result-box{margin-top:10px;padding:10px;border-left:4px solid var(--brand);background:#f2f8ff;border-radius:8px}.sub{color:var(--muted)} .note{display:block}
 .back{margin-bottom:8px;border:1px solid var(--line);background:#fff;padding:7px 10px;border-radius:8px;cursor:pointer}
 .bar{display:grid;grid-template-columns:70px 1fr 70px;align-items:center;gap:8px;margin-top:7px}.bar i{display:block;height:12px;background:#5ba8f3;border-radius:99px}
-.table-wrap{overflow-x:auto} table{width:100%;border-collapse:collapse;margin-bottom:10px}th,td{border:1px solid var(--line);padding:6px;text-align:left}
+.table-wrap{overflow-x:auto} table{width:100%;border-collapse:collapse;margin-bottom:10px}th,td{border:1px solid var(--line);padding:6px;text-align:left;vertical-align:top;word-break:break-word}
 .source{font-size:.88rem;color:var(--muted)}
 @media (max-width:900px){.card-grid,.grid.three{grid-template-columns:1fr 1fr}}
-@media (max-width:640px){.card-grid,.grid.two,.grid.three{grid-template-columns:1fr}.hero h1{font-size:1.2rem}}
+@media (max-width:640px){.card-grid,.grid.two,.grid.three{grid-template-columns:1fr}.hero h1{font-size:1.05rem;line-height:1.35}.tool-card{padding:12px}.result-box{padding:12px;line-height:1.6}.bar{grid-template-columns:56px 1fr 64px}.shell{padding:14px}}
