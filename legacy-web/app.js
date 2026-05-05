@@ -1,106 +1,11 @@
-const tabs = Array.from(document.querySelectorAll('.tool-tab'));
-const cards = Array.from(document.querySelectorAll('.tool-card'));
-
-function formatNum(value, digits = 3) {
-  return Number.isFinite(value) ? value.toFixed(digits) : '-';
-}
-
-function activateTab(id) {
-  tabs.forEach((tab) => tab.classList.toggle('active', tab.dataset.tab === id));
-  cards.forEach((card) => card.classList.toggle('active', card.dataset.panel === id));
-}
-
-tabs.forEach((tab) => tab.addEventListener('click', () => activateTab(tab.dataset.tab)));
-
-const ucValue = document.getElementById('uc-value');
-const ucMode = document.getElementById('uc-mode');
-const ucResult = document.getElementById('uc-result');
-
-function updateUnitConverter() {
-  const value = Number(ucValue.value);
-  if (!Number.isFinite(value)) {
-    ucResult.textContent = 'Result: -';
-    return;
-  }
-
-  let a = '-';
-  let b = '-';
-  switch (ucMode.value) {
-    case 'kw_btu':
-      a = `${formatNum(value)} kW`;
-      b = `${formatNum(value * 3412.142, 2)} BTU/h`;
-      break;
-    case 'kw_rt':
-      a = `${formatNum(value)} kW`;
-      b = `${formatNum(value / 3.517, 3)} RT`;
-      break;
-    case 'cfm_m3h':
-      a = `${formatNum(value)} CFM`;
-      b = `${formatNum(value * 1.699, 2)} m³/h`;
-      break;
-    case 'c_f':
-      a = `${formatNum(value)} °C`;
-      b = `${formatNum((value * 9) / 5 + 32, 2)} °F`;
-      break;
-    default:
-      break;
-  }
-
-  ucResult.textContent = `Result: ${a} ⇄ ${b}`;
-}
-
-[ucValue, ucMode].forEach((el) => el.addEventListener('input', updateUnitConverter));
-[ucMode].forEach((el) => el.addEventListener('change', updateUnitConverter));
-
-const clArea = document.getElementById('cl-area');
-const clDensity = document.getElementById('cl-density');
-const clResult = document.getElementById('cl-result');
-
-function updateCoolingLoad() {
-  const area = Number(clArea.value);
-  const density = Number(clDensity.value);
-  if (!Number.isFinite(area) || !Number.isFinite(density) || area <= 0 || density <= 0) {
-    clResult.textContent = 'Estimated Cooling Load: - kW';
-    return;
-  }
-  const loadKw = (area * density) / 1000;
-  clResult.textContent = `Estimated Cooling Load: ${formatNum(loadKw, 2)} kW`;
-}
-
-[clArea, clDensity].forEach((el) => el.addEventListener('input', updateCoolingLoad));
-
-const afKw = document.getElementById('af-kw');
-const afDt = document.getElementById('af-dt');
-const afResult = document.getElementById('af-result');
-
-function updateAirflow() {
-  const kw = Number(afKw.value);
-  const dt = Number(afDt.value);
-  if (!Number.isFinite(kw) || !Number.isFinite(dt) || kw <= 0 || dt <= 0) {
-    afResult.textContent = 'Estimated Airflow: - m³/s';
-    return;
-  }
-  const airflow = kw / (1.2 * 1.006 * dt);
-  afResult.textContent = `Estimated Airflow: ${formatNum(airflow, 3)} m³/s`;
-}
-
-[afKw, afDt].forEach((el) => el.addEventListener('input', updateAirflow));
-
-const dcRacks = document.getElementById('dc-racks');
-const dcPower = document.getElementById('dc-power');
-const dcFactor = document.getElementById('dc-factor');
-const dcResult = document.getElementById('dc-result');
-
-function updateDataCenter() {
-  const racks = Number(dcRacks.value);
-  const power = Number(dcPower.value);
-  const factor = Number(dcFactor.value);
-  if (!Number.isFinite(racks) || !Number.isFinite(power) || !Number.isFinite(factor) || racks <= 0 || power <= 0 || factor <= 0) {
-    dcResult.textContent = 'Estimated IT Cooling Capacity: - kW';
-    return;
-  }
-  const total = racks * power * factor;
-  dcResult.textContent = `Estimated IT Cooling Capacity: ${formatNum(total, 2)} kW`;
-}
-
-[dcRacks, dcPower, dcFactor].forEach((el) => el.addEventListener('input', updateDataCenter));
+const tabs=[...document.querySelectorAll('.tool-tab')],cards=[...document.querySelectorAll('.tool-card')];
+const f=(v)=>Number.isFinite(v)?v.toFixed(2):'-';
+const toM=(v,u)=>u==='cm'?v/100:v;
+function act(id){tabs.forEach(t=>t.classList.toggle('active',t.dataset.tab===id));cards.forEach(c=>c.classList.toggle('active',c.dataset.panel===id));}
+tabs.forEach(t=>t.onclick=()=>act(t.dataset.tab));
+const ve=['v-l','v-w','v-h','v-ach','v-lu','v-wu','v-hu'].map(id=>document.getElementById(id));
+function uv(){const [l,w,h,ach,lu,wu,hu]=ve;const lm=toM(+l.value,lu.value),wm=toM(+w.value,wu.value),hm=toM(+h.value,hu.value),a=+ach.value; if(![lm,wm,hm,a].every(Number.isFinite)){document.getElementById('v-result').textContent='-';return;}const vol=lm*wm*hm,cmh=vol*a;document.getElementById('v-result').textContent=`Volume ${f(vol)} m³ | CMH ${f(cmh)} | CMM ${f(cmh/60)} | CFM ${f(cmh/1.699)}`;}
+ve.forEach(e=>e&&e.addEventListener('input',uv));ve.forEach(e=>e&&e.addEventListener('change',uv));
+const de=['d-r','d-rpr','d-k','d-l','d-w','d-h','d-p','d-u','d-df','d-ld','d-o','d-v','d-pf'].map(id=>document.getElementById(id));
+function ud(){const [r,rpr,k,l,w,h,p,u,df,ld,o,v,pf]=de.map(e=>+e.value); if(![r,rpr,k,l,w,h,p,u,df,ld,o,v,pf].every(Number.isFinite)){document.getElementById('d-result').textContent='-';return;} const tr=r*rpr,it=tr*k,ups=it*u,dist=it*df,light=l*w*ld/1000,people=p*0.1,total=it+ups+dist+light+people,hvac=total*0.4,other=it*o,tp=it+hvac+other,cur=(kw)=>kw*1000/(Math.sqrt(3)*v*pf);document.getElementById('d-result').innerHTML=`Racks ${f(tr)} | Area ${f(l*w)} m² | Volume ${f(l*w*h)} m³<br>Heat Total ${f(total)} kW / ${f(total/3.5168525)} RT / ${f(total*3412.142)} BTU/h<br>UPS ${f(it)}kW ${f(cur(it))}A | HVAC ${f(hvac)}kW ${f(cur(hvac))}A | Other ${f(other)}kW ${f(cur(other))}A | Total ${f(tp)}kW ${f(cur(tp))}A<br>Based on 380V three-phase power, PF 0.95`;}
+de.forEach(e=>e&&e.addEventListener('input',ud));

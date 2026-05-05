@@ -5,8 +5,9 @@ HVAC Engineering Toolkit is a professional calculation app for HVAC engineers, t
 ## Features
 - HVAC unit conversion (kW/BTU/h, kW/RT, CFM/m³/h, °C/°F)
 - Cooling Load Estimator (area + load density method)
+- Air change ventilation calculator based on room volume and ACH
 - Airflow Calculator (from cooling load and ΔT)
-- Data Center Quick Check (rack count, rack power, redundancy)
+- Data center room estimator for rack load, heat dissipation, power consumption, and 380V three-phase current estimation
 
 ## Engineering formulas
 - **Cooling load**: `kW = Area × Load Density / 1000`

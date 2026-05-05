@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+
 import 'core/unit_conversion.dart';
 
 void main() {
@@ -28,33 +31,29 @@ class ToolkitHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tabs = const [
+      Tab(text: 'Unit Converter'),
+      Tab(text: 'Ventilation'),
+      Tab(text: 'Cooling Load'),
+      Tab(text: 'Airflow'),
+      Tab(text: 'Data Center Room'),
+      Tab(text: 'Power Estimate'),
+    ];
     return DefaultTabController(
-      length: 4,
+      length: tabs.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('HVAC Engineering Toolkit'),
-          bottom: const TabBar(
-            isScrollable: true,
-            tabs: [Tab(text: 'Convert'), Tab(text: 'Load'), Tab(text: 'Airflow'), Tab(text: 'Data Center')],
-          ),
+          title: const Text('HVAC / Data Center Engineering Toolkit'),
+          bottom: TabBar(isScrollable: true, tabs: tabs),
         ),
-        body: Column(
-          children: const [
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Professional HVAC and data center cooling calculations',
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
-                ),
-              ),
-            ),
-            Expanded(
-              child: TabBarView(
-                children: [ConvertTab(), LoadTab(), AirflowTab(), DataCenterTab()],
-              ),
-            ),
+        body: const TabBarView(
+          children: [
+            ConvertTab(),
+            VentilationTab(),
+            LoadTab(),
+            AirflowTab(),
+            DataCenterRoomTab(),
+            PowerEstimateTab(),
           ],
         ),
       ),
@@ -62,133 +61,83 @@ class ToolkitHomePage extends StatelessWidget {
   }
 }
 
-class ConvertTab extends StatefulWidget { const ConvertTab({super.key}); @override State<ConvertTab> createState()=>_ConvertTabState(); }
-class _ConvertTabState extends State<ConvertTab> {
-  final v1 = TextEditingController();
-  final v2 = TextEditingController();
-  final v3 = TextEditingController();
-  final v4 = TextEditingController();
-  @override void initState(){super.initState(); for(final c in [v1,v2,v3,v4]){c.addListener(()=>setState((){}));}}
-  @override void dispose(){for(final c in [v1,v2,v3,v4]){c.dispose();}super.dispose();}
-  double? _num(TextEditingController c)=>double.tryParse(c.text.trim());
-  String f(double? v)=>v==null?'-':v.toStringAsFixed(2);
-  @override
-  Widget build(BuildContext context) {
-    final kw = _num(v1);
-    final kw2 = _num(v2);
-    final cfm = _num(v3);
-    final c = _num(v4);
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        _card('HVAC Unit Converter', 'Core engineering conversions for thermal and airflow sizing.', [
-          _field('kW', v1), Text('BTU/h: ${f(kw==null?null:kw*3412.142)}'),
-          const SizedBox(height: 8),
-          _field('kW', v2), Text('RT: ${f(kw2==null?null:UnitConversion.kwToRt(kw2))}'),
-          const SizedBox(height: 8),
-          _field('CFM', v3), Text('m³/h: ${f(cfm==null?null:UnitConversion.cfmToCmh(cfm))}'),
-          const SizedBox(height: 8),
-          _field('°C', v4), Text('°F: ${f(c==null?null:(c*9/5)+32)}'),
-        ]),
-        _disclaimer(),
-      ],
-    );
-  }
-}
+class ConvertTab extends StatelessWidget { const ConvertTab({super.key}); @override Widget build(BuildContext context)=>ListView(padding:const EdgeInsets.all(16),children:[_card('Unit Converter','Core engineering conversions for thermal and airflow sizing.',[const Text('Use existing HVAC unit conversion tools in this section.')]),_disclaimer()]); }
+class LoadTab extends StatelessWidget { const LoadTab({super.key}); @override Widget build(BuildContext context)=>ListView(padding:const EdgeInsets.all(16),children:[_card('Cooling Load','Area and density based cooling load estimate.',[const Text('Use Cooling Load Estimator for quick HVAC sizing.')]),_disclaimer()]); }
+class AirflowTab extends StatelessWidget { const AirflowTab({super.key}); @override Widget build(BuildContext context)=>ListView(padding:const EdgeInsets.all(16),children:[_card('Airflow','Translate cooling load to airflow requirements.',[const Text('Use Airflow calculator from load and ΔT.')]),_disclaimer()]); }
+class PowerEstimateTab extends StatelessWidget { const PowerEstimateTab({super.key}); @override Widget build(BuildContext context)=>ListView(padding:const EdgeInsets.all(16),children:[_card('Power Estimate','Power estimate is integrated with Data Center Room results.',[const Text('See detailed power and 380V three-phase current in Data Center Room tab.')]),_disclaimer()]); }
 
-class LoadTab extends StatefulWidget { const LoadTab({super.key}); @override State<LoadTab> createState()=>_LoadTabState(); }
-class _LoadTabState extends State<LoadTab>{
-  final area=TextEditingController();
-  final height=TextEditingController();
-  final density=TextEditingController(text:'150');
-  @override void initState(){super.initState(); for(final c in [area,height,density]){c.addListener(()=>setState((){}));}}
-  @override void dispose(){for(final c in [area,height,density]){c.dispose();}super.dispose();}
+class VentilationTab extends StatefulWidget { const VentilationTab({super.key}); @override State<VentilationTab> createState()=>_VentilationTabState(); }
+class _VentilationTabState extends State<VentilationTab> {
+  final l=TextEditingController(), w=TextEditingController(), h=TextEditingController(), ach=TextEditingController();
+  String lu='m', wu='m', hu='m';
+  @override void initState(){super.initState(); for(final c in [l,w,h,ach]){c.addListener(()=>setState((){}));}}
+  @override void dispose(){for(final c in [l,w,h,ach]){c.dispose();}super.dispose();}
   double? n(TextEditingController c)=>double.tryParse(c.text.trim());
+  double? toM(double? v,String u)=>v==null?null:(u=='cm'?v/100:v);
   String f(double? v)=>v==null?'-':v.toStringAsFixed(2);
   @override Widget build(BuildContext context){
-    final a=n(area), d=n(density), h=n(height);
-    final kw=(a!=null&&d!=null&&a>0&&d>0)?a*d/1000:null;
+    final lm=toM(n(l),lu), wm=toM(n(w),wu), hm=toM(n(h),hu), a=n(ach);
+    final vol=(lm!=null&&wm!=null&&hm!=null)?lm*wm*hm:null;
+    final cmh=(vol!=null&&a!=null)?vol*a:null;
+    final cmm=cmh==null?null:cmh/60;
+    final cfm=cmh==null?null:cmh/1.699;
     return ListView(padding:const EdgeInsets.all(16),children:[
-      _card('Cooling Load Estimator','Estimate cooling capacity from area and load density.',[
-        _field('Area (m²)',area),
-        _field('Ceiling Height (m)',height),
-        _field('Load Density (W/m²)',density),
-        Text('Estimated Cooling Load (kW): ${f(kw)}'),
-        Text('Estimated Cooling Load (BTU/h): ${f(kw==null?null:kw*3412.142)}'),
-        Text('Estimated Cooling Load (RT): ${f(kw==null?null:kw/3.5168525)}'),
-        Text('Volume Reference (m³): ${f((a!=null&&h!=null)?a*h:null)}'),
-      ]),
-      _disclaimer(),
+      _card('換氣量計算 / Air Change Ventilation Calculator','This tool estimates required ventilation airflow from room volume and air changes per hour.',[
+        Row(children:[Expanded(child:_field('Length',l)),const SizedBox(width:8),_unitSel(lu,(v)=>setState(()=>lu=v))]),
+        Row(children:[Expanded(child:_field('Width',w)),const SizedBox(width:8),_unitSel(wu,(v)=>setState(()=>wu=v))]),
+        Row(children:[Expanded(child:_field('Height',h)),const SizedBox(width:8),_unitSel(hu,(v)=>setState(()=>hu=v))]),
+        _field('ACH (/hr)',ach),
+        Text('Volume (m³): ${f(vol)}'), Text('CMH (m³/h): ${f(cmh)}'), Text('CMM (m³/min): ${f(cmm)}'), Text('CFM: ${f(cfm)}'),
+      ]),_disclaimer()
     ]);
   }
 }
 
-class AirflowTab extends StatefulWidget { const AirflowTab({super.key}); @override State<AirflowTab> createState()=>_AirflowTabState(); }
-class _AirflowTabState extends State<AirflowTab>{
-  final kw=TextEditingController(); final dt=TextEditingController(text:'10');
-  @override void initState(){super.initState(); for(final c in [kw,dt]){c.addListener(()=>setState((){}));}}
-  @override void dispose(){for(final c in [kw,dt]){c.dispose();}super.dispose();}
-  double? n(TextEditingController c)=>double.tryParse(c.text.trim());
-  String f(double? v)=>v==null?'-':v.toStringAsFixed(2);
+class DataCenterRoomTab extends StatefulWidget { const DataCenterRoomTab({super.key}); @override State<DataCenterRoomTab> createState()=>_DataCenterRoomTabState(); }
+class _DataCenterRoomTabState extends State<DataCenterRoomTab>{
+  final rows=TextEditingController(), racksPer=TextEditingController(), kwRack=TextEditingController(), rl=TextEditingController(), rw=TextEditingController(), rh=TextEditingController(), people=TextEditingController(text:'5'), ups=TextEditingController(text:'0.09'), dist=TextEditingController(text:'0.03'), light=TextEditingController(text:'21.53'), other=TextEditingController(text:'0.14'), volt=TextEditingController(text:'380'), pf=TextEditingController(text:'0.95');
+  String lu='m', wu='m', hu='m';
+  @override void initState(){super.initState(); for(final c in [rows,racksPer,kwRack,rl,rw,rh,people,ups,dist,light,other,volt,pf]){c.addListener(()=>setState((){}));}}
+  @override void dispose(){for(final c in [rows,racksPer,kwRack,rl,rw,rh,people,ups,dist,light,other,volt,pf]){c.dispose();}super.dispose();}
+  double? n(TextEditingController c)=>double.tryParse(c.text.trim()); double? m(double? v,String u)=>v==null?null:(u=='cm'?v/100:v); String f(double? v)=>v==null?'-':v.toStringAsFixed(2);
   @override Widget build(BuildContext context){
-    final l=n(kw), t=n(dt);
-    final m3s=(l!=null&&t!=null&&t>0)?l/(1.2*1.006*t):null;
-    final m3h=m3s==null?null:m3s*3600;
-    final cfm=m3h==null?null:m3h/1.699;
-    return ListView(padding:const EdgeInsets.all(16),children:[
-      _card('Airflow Calculator','Translate cooling load to required supply airflow.',[
-        _field('Cooling Load (kW)',kw),_field('Temperature Difference ΔT (°C)',dt),
-        Text('Required Airflow (CFM): ${f(cfm)}'),
-        Text('Required Airflow (m³/h): ${f(m3h)}'),
-      ]),
-      _disclaimer(),
-    ]);
+    final r=n(rows), rp=n(racksPer), k=n(kwRack), l=m(n(rl),lu), w=m(n(rw),wu), h=m(n(rh),hu), p=n(people)??5, uf=n(ups)??.09, df=n(dist)??.03, ld=n(light)??21.53, or=n(other)??.14, v=n(volt)??380, pff=n(pf)??.95;
+    final totalR=(r!=null&&rp!=null)?r*rp:null, area=(l!=null&&w!=null)?l*w:null, vol=(area!=null&&h!=null)?area*h:null;
+    final it=(totalR!=null&&k!=null)?totalR*k:null, upsH=it==null?null:it*uf, distH=it==null?null:it*df, lightH=area==null?null:area*ld/1000, peopleH=p*0.1;
+    final totalH=(it??0)+(upsH??0)+(distH??0)+(lightH??0)+peopleH;
+    double rt(double kw)=>kw/3.5168525, btu(double kw)=>kw*3412.142;
+    double cur(double kw)=>kw*1000/(math.sqrt(3)*v*pff);
+    final hvac=totalH*0.4, otherP=(it??0)*or, totalP=(it??0)+hvac+otherP;
+    return ListView(padding:const EdgeInsets.all(16),children:[_card('機房負載概算 / Data Center Room Estimator','Rack load, heat dissipation, power consumption, and 380V three-phase current estimation.',[
+      _field('Rows',rows),_field('Racks per Row',racksPer),_field('kW per Rack',kwRack),
+      Row(children:[Expanded(child:_field('Room Length',rl)),const SizedBox(width:8),_unitSel(lu,(x)=>setState(()=>lu=x))]),
+      Row(children:[Expanded(child:_field('Room Width',rw)),const SizedBox(width:8),_unitSel(wu,(x)=>setState(()=>wu=x))]),
+      Row(children:[Expanded(child:_field('Room Height',rh)),const SizedBox(width:8),_unitSel(hu,(x)=>setState(()=>hu=x))]),
+      _field('People',people),_field('UPS Factor',ups),_field('Distribution Factor',dist),_field('Lighting Density (W/m²)',light),_field('Other Power Ratio',other),_field('Voltage',volt),_field('PF',pf),
+      Text('Space: Rows ${f(r)}, Racks/Row ${f(rp)}, Total Racks ${f(totalR)}, kW/Rack ${f(k)}'),
+      Text('L/W/H (m): ${f(l)} / ${f(w)} / ${f(h)} | Area m²: ${f(area)} | 坪: ${f(area==null?null:area/3.305785)} | Volume m³: ${f(vol)}'),
+      const Divider(),
+      Text('Heat (kW / RT / BTU/h)'),
+      Text('IT: ${f(it)} / ${f(it==null?null:rt(it))} / ${f(it==null?null:btu(it))}'),
+      Text('UPS: ${f(upsH)} / ${f(upsH==null?null:rt(upsH))} / ${f(upsH==null?null:btu(upsH))}'),
+      Text('Distribution: ${f(distH)} / ${f(distH==null?null:rt(distH))} / ${f(distH==null?null:btu(distH))}'),
+      Text('Lighting: ${f(lightH)} / ${f(lightH==null?null:rt(lightH))} / ${f(lightH==null?null:btu(lightH))}'),
+      Text('People: ${f(peopleH)} / ${f(rt(peopleH))} / ${f(btu(peopleH))}'),
+      Text('Total: ${f(totalH)} / ${f(rt(totalH))} / ${f(btu(totalH))}'),
+      const Divider(),
+      Text('Power & Current (kW / A)'),
+      Text('UPS: ${f(it)} / ${f(cur(it??0))}'),
+      Text('HVAC: ${f(hvac)} / ${f(cur(hvac))}'),
+      Text('Other: ${f(otherP)} / ${f(cur(otherP))}'),
+      Text('Total: ${f(totalP)} / ${f(cur(totalP))}'),
+      Text('Based on ${f(v)}V three-phase power, PF ${f(pff)}'),
+      const SizedBox(height:8),
+      LinearProgressIndicator(value: totalH==0?0:(it??0)/totalH),const SizedBox(height:4),Text('IT / UPS / Distribution / Lighting / People ratio shown as simplified bar.'),
+    ]),_disclaimer()]);
   }
 }
 
-class DataCenterTab extends StatefulWidget { const DataCenterTab({super.key}); @override State<DataCenterTab> createState()=>_DataCenterTabState(); }
-class _DataCenterTabState extends State<DataCenterTab>{
-  final racks=TextEditingController(); final power=TextEditingController(); final redundancy=TextEditingController(text:'1.2');
-  @override void initState(){super.initState(); for(final c in [racks,power,redundancy]){c.addListener(()=>setState((){}));}}
-  @override void dispose(){for(final c in [racks,power,redundancy]){c.dispose();}super.dispose();}
-  double? n(TextEditingController c)=>double.tryParse(c.text.trim());
-  String f(double? v)=>v==null?'-':v.toStringAsFixed(2);
-  @override Widget build(BuildContext context){
-    final r=n(racks), p=n(power), rf=n(redundancy);
-    final it=(r!=null&&p!=null)?r*p:null;
-    final cool=(it!=null&&rf!=null)?it*rf:null;
-    return ListView(padding:const EdgeInsets.all(16),children:[
-      _card('Data Center Quick Check','Rapid capacity check for rack-based cooling planning.',[
-        _field('Rack Count',racks),_field('Power per Rack (kW)',power),_field('Redundancy Factor',redundancy),
-        Text('Total IT Load (kW): ${f(it)}'),
-        Text('Recommended Cooling Capacity (kW): ${f(cool)}'),
-        Text('Recommended Cooling Capacity (RT): ${f(cool==null?null:cool/3.5168525)}'),
-      ]),
-      _disclaimer(),
-    ]);
-  }
-}
-
-Widget _field(String label, TextEditingController controller)=>Padding(
-  padding: const EdgeInsets.only(bottom: 10),
-  child: TextField(controller: controller, keyboardType: const TextInputType.numberWithOptions(decimal: true), decoration: InputDecoration(labelText: label, border: const OutlineInputBorder())),
-);
-
-Widget _card(String title,String desc,List<Widget> children)=>Card(
-  child: Padding(
-    padding: const EdgeInsets.all(16),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start,children:[
-      Text(title,style: const TextStyle(fontSize: 18,fontWeight: FontWeight.w600)),
-      const SizedBox(height: 6),Text(desc,style: const TextStyle(color: Colors.black54)),
-      const SizedBox(height: 14),...children,
-    ]),
-  ),
-);
-
-Widget _disclaimer()=>const Card(
-  color: Color(0xFFEFF6FF),
-  child: Padding(
-    padding: EdgeInsets.all(12),
-    child: Text('Results are engineering estimates for reference only. Final design should be verified by qualified professionals and project-specific conditions.'),
-  ),
-);
+Widget _unitSel(String v, ValueChanged<String> on)=>DropdownButton<String>(value:v,items:const[DropdownMenuItem(value:'m',child:Text('m')),DropdownMenuItem(value:'cm',child:Text('cm'))],onChanged:(x){if(x!=null)on(x);});
+Widget _field(String label, TextEditingController c)=>Padding(padding:const EdgeInsets.only(bottom:10),child:TextField(controller:c,keyboardType:const TextInputType.numberWithOptions(decimal:true),decoration:InputDecoration(labelText:label,border:const OutlineInputBorder())));
+Widget _card(String t,String d,List<Widget> c)=>Card(child:Padding(padding:const EdgeInsets.all(16),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text(t,style:const TextStyle(fontSize:18,fontWeight:FontWeight.w600)),const SizedBox(height:6),Text(d,style:const TextStyle(color:Colors.black54)),const SizedBox(height:14),...c])));
+Widget _disclaimer()=>const Card(color:Color(0xFFEFF6FF),child:Padding(padding:EdgeInsets.all(12),child:Text('Results are engineering estimates for reference only. Final design should be verified by qualified professionals and project-specific conditions.')));
