@@ -1,18 +1,18 @@
 const PIPE_TABLE = [
-  ['DN15', 'DN15 / 1/2"', 16],
-  ['DN20', 'DN20 / 3/4"', 21],
-  ['DN25', 'DN25 / 1"', 27],
-  ['DN32', 'DN32 / 1-1/4"', 35],
-  ['DN40', 'DN40 / 1-1/2"', 41],
-  ['DN50', 'DN50 / 2"', 52],
-  ['DN65', 'DN65 / 2-1/2"', 67],
-  ['DN80', 'DN80 / 3"', 78],
-  ['DN100', 'DN100 / 4"', 102],
-  ['DN125', 'DN125 / 5"', 128],
-  ['DN150', 'DN150 / 6"', 154],
+  ['DN15', '15A', 16],
+  ['DN20', '20A', 21],
+  ['DN25', '25A', 27],
+  ['DN32', '32A', 35],
+  ['DN40', '40A', 41],
+  ['DN50', '50A', 52],
+  ['DN65', '65A', 67],
+  ['DN80', '80A', 78],
+  ['DN100', '100A', 102],
+  ['DN125', '125A', 128],
+  ['DN150', '150A', 154],
 ];
 
-const PIPE_SIZE_OPTIONS = PIPE_TABLE.map(([id, label, innerDiameterMm]) => ({ id, label, innerDiameterMm }));
+const PIPE_SIZE_OPTIONS = PIPE_TABLE.map(([id, nominalA, innerDiameterMm]) => ({ id, nominalA, label: nominalA, innerDiameterMm, displayName: `${nominalA}（${id}）` }));
 
 function areaM2FromDiameterMm(innerDiameterMm) {
   const diameterM = innerDiameterMm / 1000;

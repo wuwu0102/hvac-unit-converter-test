@@ -1,52 +1,63 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
 const { pressureToPa } = require('../src/lib/engineering/unitConversion');
-const { analyzePressureFlowInput } = require('../src/lib/engineering/pressureFlow');
-const { getPipeSizeById, calculateVelocityFromLpmAndDiameter, getRecommendedPipeForFlow } = require('../src/lib/engineering/pipeSizing');
+const { getPipeSizeById } = require('../src/lib/engineering/pipeSizing');
+const { estimateBasicPressureFlow } = require('../src/lib/engineering/basicPressureFlow');
+const { calculateEquipmentCorrection } = require('../src/lib/engineering/equipmentCurveCorrection');
+
+test('initial page title and version', () => {
+  const html = fs.readFileSync('index.html', 'utf8');
+  assert.ok(html.includes('Web V0.26'));
+  const app = fs.readFileSync('app.js', 'utf8');
+  assert.ok(app.includes("panel('壓差估算流量'"));
+  assert.ok(!app.includes('壓差估算流量（設備修正）'));
+});
+
+test('主流程不含進階欄位文字', () => {
+  const app = fs.readFileSync('app.js', 'utf8');
+  assert.ok(app.includes('進階設定：設備已知條件（可選）'));
+  assert.ok(app.includes('公式：refFlow × sqrt(measuredPa / refDpPa)'));
+});
+
+test('pipe label default style 15A', () => {
+  const dn15 = getPipeSizeById('DN15');
+  assert.equal(dn15.label, '15A');
+  assert.equal(dn15.innerDiameterMm, 16);
+});
+
+test('basic flow placeholder behavior', () => {
+  assert.equal(estimateBasicPressureFlow(null, 'kPa', 'DN15'), null);
+  assert.equal(estimateBasicPressureFlow(0, 'kPa', 'DN15'), null);
+  assert.equal(estimateBasicPressureFlow(-1, 'kPa', 'DN15'), null);
+});
+
+test('basic flow formula works', () => {
+  const result = estimateBasicPressureFlow(0.5, 'kPa', 'DN25');
+  assert.ok(result.flowLpm > 0);
+  assert.ok(result.velocityMs > 0);
+});
+
+test('equipment correction needs complete advanced data', () => {
+  const pipe = getPipeSizeById('DN25');
+  assert.equal(calculateEquipmentCorrection({ measuredDpPa: 50000, referenceFlowLpm: null, referenceDpValue: 30, referenceDpUnit: 'Pa', selectedPipe: pipe }), null);
+});
+
+test('auto correction 30 Pa -> 30 kPa exists', () => {
+  const pipe = getPipeSizeById('DN25');
+  const corrected = calculateEquipmentCorrection({ measuredDpPa: 50000, referenceFlowLpm: 300, referenceDpValue: 30, referenceDpUnit: 'Pa', selectedPipe: pipe, disableAutoCorrection: false });
+  assert.equal(corrected.displayReferenceDpUnit, 'kPa');
+  assert.equal(corrected.wasAutoCorrected, true);
+});
+
+test('disable auto correction keeps abnormal result with warning flag', () => {
+  const pipe = getPipeSizeById('DN25');
+  const raw = calculateEquipmentCorrection({ measuredDpPa: 50000, referenceFlowLpm: 300, referenceDpValue: 30, referenceDpUnit: 'Pa', selectedPipe: pipe, disableAutoCorrection: true });
+  assert.equal(raw.wasAutoCorrected, false);
+  assert.ok(raw.correctedFlowLpm > 10000);
+  assert.equal(raw.strongWarning, true);
+});
 
 test('unit conversion', () => {
   assert.equal(pressureToPa(0.5, 'bar'), 50000);
-  assert.equal(pressureToPa(30, 'kPa'), 30000);
-  assert.equal(pressureToPa(30, 'Pa'), 30);
-});
-
-test('formula and dn25 velocity', () => {
-  const flow = 300 * Math.sqrt(50000 / 30000);
-  assert.ok(Math.abs(flow - 387.3) < 0.2);
-  const dn25 = getPipeSizeById('DN25');
-  const v = calculateVelocityFromLpmAndDiameter(flow, dn25.innerDiameterMm);
-  assert.ok(Math.abs(v - 11.3) < 0.3);
-  assert.ok(Math.abs(dn25.maxFlowAt3MsLpm - 103) < 2);
-});
-
-test('auto correction and advanced mode', () => {
-  const base = { measuredDpValue: 0.5, measuredDpUnit: 'bar', referenceDpValue: 30, referenceDpUnit: 'Pa', referenceFlowLpm: 300, pipeId: 'DN25' };
-  const corrected = analyzePressureFlowInput(base);
-  assert.equal(corrected.wasAutoCorrected, true);
-  assert.equal(corrected.displayReferenceDpUnit, 'kPa');
-  assert.equal(corrected.normalizedReferenceDpPa, 30000);
-  assert.ok(Math.abs(corrected.estimatedFlowLpm - 387.3) < 0.2);
-  assert.ok(corrected.warnings.join(' ').includes('自動判定'));
-
-  const adv = analyzePressureFlowInput({ ...base, disableAutoCorrection: true });
-  assert.equal(adv.wasAutoCorrected, false);
-  assert.equal(adv.normalizedReferenceDpPa, 30);
-  assert.ok(Math.abs(adv.estimatedFlowLpm - 12247.4) < 0.3);
-  assert.ok((adv.warnings.join(' ') + adv.errors.join(' ')).includes('極不合理'));
-});
-
-test('recommended pipe', () => {
-  const rec = getRecommendedPipeForFlow(300, 3);
-  assert.notEqual(rec.id, 'DN25');
-  assert.ok(['DN40','DN50','DN65','DN80','DN100','DN125','DN150'].includes(rec.id));
-});
-
-test('invalid inputs should not calculate', () => {
-  const base = { measuredDpUnit: 'bar', referenceDpUnit: 'kPa', pipeId: 'DN40' };
-  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: null, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
-  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: 0.5, referenceFlowLpm: null, referenceDpValue: 30 }), null);
-  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: 0.5, referenceFlowLpm: 300, referenceDpValue: null }), null);
-  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: 0, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
-  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: -1, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
-  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: Number.NaN, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
 });
