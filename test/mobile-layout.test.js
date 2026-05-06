@@ -19,6 +19,6 @@ test('no known overflow anti-patterns',()=>{
 });
 
 test('pipe and dp pages keep wrapped long Chinese text',()=>{
-  assert.ok(appJs.includes('超出表內管徑，請分管或加大管徑。'));
+  assert.ok(appJs.includes('超出表內最大管徑（400A）'));
   assert.ok(appJs.includes('壓差估算流量'));
 });
