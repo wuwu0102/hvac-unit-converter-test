@@ -58,7 +58,7 @@ function initPowerUnitTool(){ bindConverter(['w','kw','hp'], (s,v)=>({w:v,kw:v*1
 function initKwiTool(){const calc=()=>{const p=+pk.value*1000,v=+vk.value,pf=+pfk.value;const single=p/(v*pf);const three=p/(Math.sqrt(3)*v*pf);r.innerHTML=Number.isFinite(single)&&Number.isFinite(three)?`單相電流：${format1(single)} A<br>三相電流：${format1(three)} A`:'-';};['pk','vk','pfk'].forEach(i=>document.getElementById(i).addEventListener('input',calc));}
 function initPipeSuggestTool(){
   const qLpm = document.getElementById('qLpm'); const r = document.getElementById('r');
-  const calc=()=>{const lpm=parsePositiveNumberInput(qLpm.value); if(!lpm){r.textContent='-';return;} const best=getRecommendedPipeForFlow(lpm,3); if(!best){r.innerHTML='超出表內管徑，請分管或加大管徑。';return;} r.innerHTML=`建議管徑：<b>${best.label}</b><br>建議流速：約 ${format1(best.velocityMs)} m/s<br><span class='muted'>3 m/s 僅作為設計選管建議值，實際設計仍需依現場條件複核。</span>`;};
+  const calc=()=>{const lpm=parsePositiveNumberInput(qLpm.value); if(!lpm){r.textContent='-';return;} const best=getRecommendedPipeForFlow(lpm,3); if(!best){r.innerHTML='超出表內最大管徑（400A），請重新確認流量與系統條件。';return;} r.innerHTML=`建議管徑：<b>${best.label}</b><br>建議流速：約 ${format1(best.velocityMs)} m/s<br><span class='muted'>3 m/s 僅作為設計選管建議值，實際設計仍需依現場條件複核。</span>`;};
   qLpm.addEventListener('input', calc);
 }
 
