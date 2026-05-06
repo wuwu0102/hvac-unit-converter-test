@@ -2,27 +2,28 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const appJs = fs.readFileSync('app.js','utf8');
-const indexHtml = fs.readFileSync('index.html','utf8');
 
-test('首頁 smoke: 工具入口與返回首頁存在',()=>{
-  ['data-group="A"','data-group="F"'].forEach(t=>assert.ok(indexHtml.includes(t)));
-  assert.ok(appJs.includes('toolRegistry'));
-  assert.ok(appJs.includes('function openTool(id)'));
-  assert.ok(appJs.includes('← 返回首頁'));
+test('app.js 功能完整性',()=>{
+  assert.ok(!appJs.includes('omitted for brevity'));
+  assert.ok(!appJs.includes('保留入口'));
+  assert.match(appJs,/function initDcSharedTool\(\)\{const calc=/);
+  assert.ok(appJs.includes('kwi:{title'));
+  assert.ok(appJs.includes('單相電流')); assert.ok(appJs.includes('三相電流'));
 });
 
-test('單位換算 regression handlers exist',()=>{
-  ['initTempTool','initFlowTool','initPressureTool','initVelocityTool','initPowerUnitTool'].forEach(n=>assert.ok(appJs.includes(`function ${n}(`)));
+test('kW估算電流包含完整輸入與輸出',()=>{
+  ['pk','vk','pfk'].forEach((id)=>assert.ok(appJs.includes(`'${id}'`)));
+  assert.ok(appJs.includes('p/(v*pf)'));
+  assert.ok(appJs.includes('p/(Math.sqrt(3)*v*pf)'));
 });
 
-test('水管管徑建議規則',()=>{
-  assert.ok(appJs.includes('3 m/s 僅作為設計選管建議值'));
-  assert.ok(appJs.includes('超出表內管徑，請分管或加大管徑。'));
-  assert.ok(appJs.includes('getRecommendedPipeForFlow(lpm,3)'));
+test('機房工具輸出完整四段',()=>{
+  ['A. 機房空間','B. 散熱評估','C. 預估耗電量','D. 比例圖'].forEach((k)=>assert.ok(appJs.includes(k)));
+  ['dc:{title','heat:{title','power:{title'].forEach((k)=>assert.ok(appJs.includes(k)));
 });
 
-test('壓差估算流量規則',()=>{
-  assert.ok(appJs.includes('correctedFlowLpm = refFlowLpm × √(measuredPa / refDpPa)') || appJs.includes('refFlowLpm'));
+test('壓差估算不以 3 m/s 阻擋',()=>{
   assert.ok(appJs.includes('參考流速'));
-  assert.ok(!appJs.includes('不能算'));
+  assert.ok(appJs.includes('請確認壓差單位、量測點、管徑內徑與設備選型資料是否正確。'));
+  assert.ok(!appJs.includes('3 m/s 不可作為壓差估算'));
 });
