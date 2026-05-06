@@ -23,3 +23,18 @@ input,select{display:block;width:100%;max-width:100%;min-height:42px;padding:8px
 
 .muted{color:var(--muted)}
 .subtle{background:#f8fafc;border-left-color:#cbd5e1}
+
+main,.page,.card,.panel,.tool,.result-box,.field,.grid,input,select,button,table,.table-wrap,.sub,.note{max-width:100%;min-width:0;box-sizing:border-box}
+.sub,.result-box,.note,.card,.tool{overflow-wrap:anywhere;word-break:break-word}
+input,select{width:100%;max-width:100%}
+@media (max-width:640px){
+  body{padding:10px}
+  main{width:100%;max-width:100%;padding:12px}
+  h1{font-size:1.6rem;line-height:1.25}
+  h2{font-size:1.4rem;line-height:1.25}
+  .sub{font-size:1rem;line-height:1.5;white-space:normal}
+  .grid,.grid.two,.grid.three{grid-template-columns:1fr;width:100%}
+  .result-box{width:100%;max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+  .back{max-width:100%;white-space:normal}
+  .table-wrap{overflow-x:auto}
+}
