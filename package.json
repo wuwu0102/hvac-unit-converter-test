@@ -5,6 +5,6 @@
   "scripts": {
     "build": "node -e \"console.log('Static site build check: no bundling required.');\"",
     "check:engineering": "node scripts/engineering-self-check.js",
-    "test": "node --test test/pressure-flow.test.js"
+    "test": "node --test test/pressure-flow.test.js test/mobile-layout.test.js"
   }
 }
