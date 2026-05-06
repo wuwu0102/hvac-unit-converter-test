@@ -5,9 +5,9 @@
     { id: 'DN25', label: 'DN25 / 1"', nominalMm: 25, innerDiameterMm: 27 },
     { id: 'DN32', label: 'DN32 / 1-1/4"', nominalMm: 32, innerDiameterMm: 35 },
     { id: 'DN40', label: 'DN40 / 1-1/2"', nominalMm: 40, innerDiameterMm: 41 },
-    { id: 'DN50', label: 'DN50 / 2"', nominalMm: 50, innerDiameterMm: 53 },
-    { id: 'DN65', label: 'DN65 / 2-1/2"', nominalMm: 65, innerDiameterMm: 68 },
-    { id: 'DN80', label: 'DN80 / 3"', nominalMm: 80, innerDiameterMm: 80 },
+    { id: 'DN50', label: 'DN50 / 2"', nominalMm: 50, innerDiameterMm: 52 },
+    { id: 'DN65', label: 'DN65 / 2-1/2"', nominalMm: 65, innerDiameterMm: 67 },
+    { id: 'DN80', label: 'DN80 / 3"', nominalMm: 80, innerDiameterMm: 78 },
     { id: 'DN100', label: 'DN100 / 4"', nominalMm: 100, innerDiameterMm: 102 },
     { id: 'DN125', label: 'DN125 / 5"', nominalMm: 125, innerDiameterMm: 128 },
     { id: 'DN150', label: 'DN150 / 6"', nominalMm: 150, innerDiameterMm: 154 },
@@ -27,7 +27,13 @@
     return Number.isFinite(velocityMs) && velocityMs > 0 ? velocityMs : null;
   };
 
-  const api = { PIPE_SIZE_OPTIONS, getPipeSizeById, calculateVelocityFromLpmAndDiameter };
+  const getRecommendedPipeForFlow = (flowLpm, maxVelocityMs = 3) => {
+    if (!Number.isFinite(flowLpm) || flowLpm <= 0) return null;
+    return PIPE_SIZE_OPTIONS.map((item) => ({ ...item, velocityMs: calculateVelocityFromLpmAndDiameter(flowLpm, item.innerDiameterMm) }))
+      .find((item) => Number.isFinite(item.velocityMs) && item.velocityMs <= maxVelocityMs) || null;
+  };
+
+  const api = { PIPE_SIZE_OPTIONS, getPipeSizeById, calculateVelocityFromLpmAndDiameter, getRecommendedPipeForFlow };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   if (globalScope) globalScope.PipeSizes = api;
 })(typeof window !== 'undefined' ? window : globalThis);
