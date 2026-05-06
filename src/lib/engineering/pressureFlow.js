@@ -4,6 +4,10 @@ const { classifyVelocity } = require('./engineeringValidation');
 
 function analyzePressureFlowInput(input) {
   const { measuredDpValue, measuredDpUnit, referenceDpValue, referenceDpUnit, referenceFlowLpm, pipeId, disableAutoCorrection = false } = input;
+  const isInvalidNumber = (value) => !Number.isFinite(value) || value <= 0;
+  if (isInvalidNumber(measuredDpValue) || isInvalidNumber(referenceDpValue) || isInvalidNumber(referenceFlowLpm)) {
+    return null;
+  }
   const warnings = [];
   const errors = [];
   const autoCorrections = [];

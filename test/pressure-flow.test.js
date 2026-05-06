@@ -40,3 +40,13 @@ test('recommended pipe', () => {
   assert.notEqual(rec.id, 'DN25');
   assert.ok(['DN40','DN50','DN65','DN80','DN100','DN125','DN150'].includes(rec.id));
 });
+
+test('invalid inputs should not calculate', () => {
+  const base = { measuredDpUnit: 'bar', referenceDpUnit: 'kPa', pipeId: 'DN40' };
+  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: null, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
+  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: 0.5, referenceFlowLpm: null, referenceDpValue: 30 }), null);
+  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: 0.5, referenceFlowLpm: 300, referenceDpValue: null }), null);
+  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: 0, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
+  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: -1, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
+  assert.equal(analyzePressureFlowInput({ ...base, measuredDpValue: Number.NaN, referenceFlowLpm: 300, referenceDpValue: 30 }), null);
+});
