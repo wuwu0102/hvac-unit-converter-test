@@ -8,15 +8,29 @@ const parseNumber = (raw) => {
 };
 const format1 = (value) => {
   if (!Number.isFinite(value)) return '-';
-  const abs = Math.abs(value);
-  if (abs > 0 && abs < 0.1) {
-    return String(Number(value.toFixed(2)));
-  }
   return String(Number(value.toFixed(1)));
 };
 const m3hToCfm = (v) => v / 1.699;
 const toM = (v, u) => (u === 'cm' ? v / 100 : v);
 const sourceText = '依據：APC－計算數據中心製冷量';
+
+const pipeSizeList = [
+  { mm: 20, label: '15A / 1/2" / DN15' },
+  { mm: 27, label: '20A / 3/4" / DN20' },
+  { mm: 35, label: '25A / 1" / DN25' },
+  { mm: 41, label: '32A / 1-1/4" / DN32' },
+  { mm: 53, label: '40A / 1-1/2" / DN40' },
+  { mm: 68, label: '50A / 2" / DN50' },
+  { mm: 80, label: '65A / 2-1/2" / DN65' },
+  { mm: 106, label: '80A / 3" / DN80' },
+  { mm: 131, label: '100A / 4" / DN100' },
+  { mm: 157, label: '125A / 5" / DN125' },
+  { mm: 209, label: '150A / 6" / DN150' },
+  { mm: 259, label: '200A / 8" / DN200' }
+];
+const dpToPa = (v, u) => ({ kPa: v * 1000, mAq: v * 9806.65, bar: v * 100000, psi: v * 6894.757 }[u]);
+const paToDp = (v, u) => ({ kPa: v / 1000, mAq: v / 9806.65, bar: v / 100000, psi: v / 6894.757 }[u]);
+
 
 const tools = [
   ['temp','A','溫度換算','°C / °F / K'], ['flow','A','流量換算','L/s、L/min、CMH、CFM'], ['press','A','壓力換算','Pa / kPa / bar / psi'], ['vel','A','流速換算','m/s、km/h、ft/s'], ['punit','A','電力單位換算','W / kW / hp'],
@@ -50,8 +64,8 @@ function openTool(id){
   if(id==='press'){panel('壓力換算','Pa、kPa、bar、psi。',`<div class='grid two'>${field('pa','Pa')}${field('kpa','kPa')}${field('bar','bar')}${field('psi','psi')}</div>`); const calc=(src)=>{const raw=parseNumber(document.getElementById(src).value);if(raw===null)return;const paV={pa:raw,kpa:raw*1000,bar:raw*100000,psi:raw*6894.757}[src];const out={pa:paV,kpa:paV/1000,bar:paV/100000,psi:paV/6894.757};['pa','kpa','bar','psi'].forEach((id)=>{if(id!==src) document.getElementById(id).value=format1(out[id]);});};['pa','kpa','bar','psi'].forEach(i=>document.getElementById(i).addEventListener('input',()=>calc(i)));}
   if(id==='vel'){panel('流速換算','m/s、km/h、ft/s。',`<div class='grid two'>${field('ms','m/s')}${field('kmh','km/h')}${field('fts','ft/s')}</div>`); const calc=(src)=>{const raw=parseNumber(document.getElementById(src).value);if(raw===null)return;const msV={ms:raw,kmh:raw/3.6,fts:raw/3.28084}[src];const out={ms:msV,kmh:msV*3.6,fts:msV*3.28084};['ms','kmh','fts'].forEach((id)=>{if(id!==src) document.getElementById(id).value=format1(out[id]);});};['ms','kmh','fts'].forEach(i=>document.getElementById(i).addEventListener('input',()=>calc(i)));}
   if(id==='punit'){panel('電力單位換算','W、kW、hp。',`<div class='grid two'>${field('w','W')}${field('kw','kW')}${field('hp','hp')}</div>`); const calc=(src)=>{const raw=parseNumber(document.getElementById(src).value);if(raw===null)return;const wv={w:raw,kw:raw*1000,hp:raw*745.7}[src];const out={w:wv,kw:wv/1000,hp:wv/745.7};['w','kw','hp'].forEach((id)=>{if(id!==src) document.getElementById(id).value=format1(out[id]);});};['w','kw','hp'].forEach(i=>document.getElementById(i).addEventListener('input',()=>calc(i)));}
-  if(id==='pipe'){panel('水管管徑建議','依流量與設計流速計算建議內徑。',`<div class='grid two'>${field('q','流量 m³/h','例如 12')}${field('vs','設計流速 m/s','例如 1.5')}</div><div id='r' class='result-box'>-</div>`); const calc=()=>{const qm3s=(+q.value)/3600,v=+vs.value;if(!Number.isFinite(qm3s)||!Number.isFinite(v)||v<=0){r.textContent='-';return;}const d=Math.sqrt((4*qm3s)/(Math.PI*v));r.innerHTML=`建議內徑：約 ${format1(d*1000)} mm（${format1(d)} m）`;};['q','vs'].forEach(i=>document.getElementById(i).addEventListener('input',calc));}
-  if(id==='dp'){panel('壓差估算流量','以孔板近似 Q = K√ΔP。',`<div class='grid two'>${field('kcoef','係數 K','例如 2.5')}${field('dpv','壓差 ΔP','例如 16')}</div><div id='r' class='result-box'>-</div>`); const calc=()=>{const q=+kcoef.value*Math.sqrt(+dpv.value);r.innerHTML=Number.isFinite(q)?`估算流量：${format1(q)}（依現場係數單位）`:'-';};['kcoef','dpv'].forEach(i=>document.getElementById(i).addEventListener('input',calc));}
+  if(id==='pipe'){panel('水管管徑建議','依設計流量（LPM）建議管徑與流速。',`<div class='grid two'>${field('qLpm','設計流量 LPM','例如 300')}</div><div id='r' class='result-box'>-</div>`); const calc=()=>{const lpm=parseNumber(qLpm.value);if(lpm===null||lpm<=0){r.textContent='-';return;}const q=lpm/1000/60;const rows=pipeSizeList.map(p=>{const area=Math.PI*Math.pow(p.mm/1000,2)/4;const v=q/area;return { ...p, v, diff: Math.abs(v-2.3) };});rows.sort((a,b)=>a.diff-b.diff);const best=rows[0];r.innerHTML=`建議管徑：<b>${best.label}</b><br>流速：約 ${format1(best.v)} m/s`;};['qLpm'].forEach(i=>document.getElementById(i).addEventListener('input',calc));}
+  if(id==='dp'){panel('壓差估算流量（設備修正）','依參考點估算流量：refFlow × sqrt(measuredPa / refDpPa)。',`<div class='grid two'>${field('measuredDp','目前量測壓差','例如 25')}<label>量測壓差單位</label><select id='measuredUnit'><option value='kPa'>kPa</option><option value='mAq'>mAq</option><option value='bar'>bar</option><option value='psi'>psi</option></select>${field('pipeUsed','使用管徑','例如 50A / 2" / DN50')}${field('refFlow','參考流量 LPM','','300')}${field('refDp','對應水側壓損','','30')}<label>壓損單位</label><select id='refDpUnit'><option value='kPa'>kPa</option><option value='mAq'>mAq</option><option value='bar'>bar</option></select></div><div id='r' class='result-box'>-</div>`); const calc=()=>{const m=parseNumber(measuredDp.value),rf=parseNumber(refFlow.value),rdp=parseNumber(refDp.value);if([m,rf,rdp].some(v=>v===null)||rf<=0||rdp<=0){r.textContent='-';return;}const measuredPa=dpToPa(m, measuredUnit.value);const refDpPa=dpToPa(rdp, refDpUnit.value);const flow=rf*Math.sqrt(measuredPa/refDpPa);r.innerHTML=`估算流量：約 ${format1(flow)} LPM<br>使用管徑：${pipeUsed.value||'-'}<br>換算量測壓差：${format1(paToDp(measuredPa,'kPa'))} kPa`;};['measuredDp','measuredUnit','pipeUsed','refFlow','refDp','refDpUnit'].forEach(i=>document.getElementById(i).addEventListener('input',calc));}
   if(id==='vent'){
     panel('換氣量計算','依室內長、寬、高與每小時換氣次數 ACH，估算所需換氣量。',`<div class='grid two'>${field('l','室內長度','例如 13.2')}<label>長度單位</label><select id='ul'><option value='m'>m</option><option value='cm'>cm</option></select>${field('w','室內寬度','例如 10.2')}<label>寬度單位</label><select id='uw'><option value='m'>m</option><option value='cm'>cm</option></select>${field('h','室內高度','例如 3.0')}<label>高度單位</label><select id='uh'><option value='m'>m</option><option value='cm'>cm</option></select>${field('ach','換氣次數 ACH（次/小時）','例如 6','','ACH = Air Changes per Hour，每小時換氣次數')}</div><div id='r' class='result-box'>-</div>`);
     const calc=()=>{const lm=toM(+l.value,ul.value),wm=toM(+w.value,uw.value),hm=toM(+h.value,uh.value),a=+ach.value;if(![lm,wm,hm,a].every(Number.isFinite)||a<=0){r.textContent='-';return;}const v=lm*wm*hm,cmh=v*a;r.innerHTML=`空間體積 ${format1(v)} m³<br>每小時換氣量 ${format1(cmh)} CMH / m³/h<br>每分鐘換氣量 ${format1(cmh/60)} CMM / m³/min<br>CFM ${format1(m3hToCfm(cmh))}`};['l','w','h','ul','uw','uh','ach'].forEach(i=>document.getElementById(i).addEventListener('input',calc));
