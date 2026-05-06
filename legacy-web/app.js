@@ -14,26 +14,10 @@ const m3hToCfm = (v) => v / 1.699;
 const toM = (v, u) => (u === 'cm' ? v / 100 : v);
 const sourceText = '依據：APC－計算數據中心製冷量';
 
-const pipeSizeList = [
-  { mm: 15.8, label: '15A / 1/2" / DN15' },
-  { mm: 20.9, label: '20A / 3/4" / DN20' },
-  { mm: 26.6, label: '25A / 1" / DN25' },
-  { mm: 35.1, label: '32A / 1-1/4" / DN32' },
-  { mm: 40.9, label: '40A / 1-1/2" / DN40' },
-  { mm: 52.5, label: '50A / 2" / DN50' },
-  { mm: 62.7, label: '65A / 2-1/2" / DN65' },
-  { mm: 77.9, label: '80A / 3" / DN80' },
-  { mm: 102.3, label: '100A / 4" / DN100' },
-  { mm: 128.2, label: '125A / 5" / DN125' },
-  { mm: 154.1, label: '150A / 6" / DN150' },
-  { mm: 202.7, label: '200A / 8" / DN200' },
-  { mm: 254.5, label: '250A / 10" / DN250' },
-  { mm: 303.2, label: '300A / 12" / DN300' },
-  { mm: 333.4, label: '350A / 14" / DN350' },
-  { mm: 381.0, label: '400A / 16" / DN400' }
-];
-const dpToPa = (v, u) => ({ kPa: v * 1000, mAq: v * 9806.65, bar: v * 100000, psi: v * 6894.757 }[u]);
-const paToDp = (v, u) => ({ kPa: v / 1000, mAq: v / 9806.65, bar: v / 100000, psi: v / 6894.757 }[u]);
+const { PIPE_SIZE_OPTIONS, getPipeSizeById, calculateVelocityFromLpmAndDiameter } = window.PipeSizes || {};
+const pipeSizeList = (PIPE_SIZE_OPTIONS || []).map((item) => ({ mm: item.innerDiameterMm, label: item.label }));
+const dpToPa = (v, u) => ({ Pa: v, kPa: v * 1000, mH2O: v * 9806.65, bar: v * 100000 }[u]);
+const paToDp = (v, u) => ({ Pa: v, kPa: v / 1000, mH2O: v / 9806.65, bar: v / 100000 }[u]);
 
 
 const tools = [
@@ -69,7 +53,7 @@ function openTool(id){
   if(id==='vel'){panel('流速換算','m/s、km/h、ft/s。',`<div class='grid two'>${field('ms','m/s')}${field('kmh','km/h')}${field('fts','ft/s')}</div>`); const calc=(src)=>{const raw=parseNumber(document.getElementById(src).value);if(raw===null)return;const msV={ms:raw,kmh:raw/3.6,fts:raw/3.28084}[src];const out={ms:msV,kmh:msV*3.6,fts:msV*3.28084};['ms','kmh','fts'].forEach((id)=>{if(id!==src) document.getElementById(id).value=format1(out[id]);});};['ms','kmh','fts'].forEach(i=>document.getElementById(i).addEventListener('input',()=>calc(i)));}
   if(id==='punit'){panel('電力單位換算','W、kW、hp。',`<div class='grid two'>${field('w','W')}${field('kw','kW')}${field('hp','hp')}</div>`); const calc=(src)=>{const raw=parseNumber(document.getElementById(src).value);if(raw===null)return;const wv={w:raw,kw:raw*1000,hp:raw*745.7}[src];const out={w:wv,kw:wv/1000,hp:wv/745.7};['w','kw','hp'].forEach((id)=>{if(id!==src) document.getElementById(id).value=format1(out[id]);});};['w','kw','hp'].forEach(i=>document.getElementById(i).addEventListener('input',()=>calc(i)));}
   if(id==='pipe'){panel('水管管徑建議','依設計流量（LPM）建議管徑與流速。',`<div class='grid two'>${field('qLpm','設計流量 LPM','例如 300')}</div><div id='r' class='result-box'>-</div>`); const calc=()=>{const lpm=parseNumber(qLpm.value);if(lpm===null||lpm<=0){r.textContent='-';return;}const q=lpm/1000/60;const rows=pipeSizeList.map(p=>{const area=Math.PI*Math.pow(p.mm/1000,2)/4;const v=q/area;let judgement='建議';if(v>3.0) judgement='超速';else if(v<1.2) judgement='偏低但可用';return { ...p, v, judgement };});const best=rows.find((x)=>x.v<=3.0);if(!best){r.innerHTML='超出表內管徑，請分管或加大管徑。';return;}r.innerHTML=`建議管徑：<b>${best.label}</b><br>流速：約 ${format1(best.v)} m/s<br>判定：${best.judgement}`;};['qLpm'].forEach(i=>document.getElementById(i).addEventListener('input',calc));}
-  if(id==='dp'){panel('壓差估算流量（設備修正）','依參考點估算流量：refFlow × sqrt(measuredPa / refDpPa)。',`<div class='grid two'>${field('measuredDp','目前量測壓差','例如 25')}<label>量測壓差單位</label><select id='measuredUnit'><option value='kPa'>kPa</option><option value='mAq'>mAq</option><option value='bar'>bar</option><option value='psi'>psi</option></select>${field('pipeUsed','使用管徑','例如 50A / 2" / DN50')}${field('refFlow','參考流量 LPM','','300')}${field('refDp','對應水側壓損','','30')}<label>壓損單位</label><select id='refDpUnit'><option value='kPa'>kPa</option><option value='mAq'>mAq</option><option value='bar'>bar</option></select></div><div id='r' class='result-box'>-</div>`); const calc=()=>{const m=parseNumber(measuredDp.value),rf=parseNumber(refFlow.value),rdp=parseNumber(refDp.value);if([m,rf,rdp].some(v=>v===null)||rf<=0||rdp<=0){r.textContent='-';return;}const measuredPa=dpToPa(m, measuredUnit.value);const refDpPa=dpToPa(rdp, refDpUnit.value);const flow=rf*Math.sqrt(measuredPa/refDpPa);r.innerHTML=`估算流量：約 ${format1(flow)} LPM<br>使用管徑：${pipeUsed.value||'-'}<br>換算量測壓差：${format1(paToDp(measuredPa,'kPa'))} kPa`;};['measuredDp','measuredUnit','pipeUsed','refFlow','refDp','refDpUnit'].forEach(i=>document.getElementById(i).addEventListener('input',calc));}
+  if(id==='dp'){panel('壓差估算流量（設備修正）','依參考點估算流量：refFlow × sqrt(measuredPa / refDpPa)。',`<div class='grid two'>${field('measuredDp','目前量測壓差','例如 25')}<label>量測壓差單位</label><select id='measuredUnit'><option value='Pa'>Pa</option><option value='kPa'>kPa</option><option value='mH2O'>mH2O</option><option value='bar'>bar</option></select><label>使用管徑</label><select id='pipeUsed'><option value=''>請選擇管徑</option>${(PIPE_SIZE_OPTIONS||[]).map((p)=>`<option value='${p.id}'>${p.label}</option>`).join('')}</select><small class='help'>管徑內徑為工程估算值，實際值會依管材、Schedule、JIS/ANSI/DIN 標準不同而變動。</small>${field('refFlow','參考流量 LPM','','300')}${field('refDp','對應水側壓損','','30')}<label>壓損單位</label><select id='refDpUnit'><option value='Pa'>Pa</option><option value='kPa'>kPa</option><option value='mH2O'>mH2O</option><option value='bar'>bar</option></select></div><div id='r' class='result-box'>-</div>`); const calc=()=>{const m=parseNumber(measuredDp.value),rf=parseNumber(refFlow.value),rdp=parseNumber(refDp.value);if([m,rf,rdp].some(v=>v===null)||m<=0||rf<=0||rdp<=0){r.textContent='-';return;}const measuredPa=dpToPa(m, measuredUnit.value);const refDpPa=dpToPa(rdp, refDpUnit.value);if(!Number.isFinite(measuredPa)||!Number.isFinite(refDpPa)||measuredPa<=0||refDpPa<=0){r.textContent='-';return;}const flow=rf*Math.sqrt(measuredPa/refDpPa);if(!Number.isFinite(flow)||flow<=0){r.textContent='-';return;}const selectedPipe=getPipeSizeById?getPipeSizeById(pipeUsed.value):null;const velocity=selectedPipe&&calculateVelocityFromLpmAndDiameter?calculateVelocityFromLpmAndDiameter(flow, selectedPipe.innerDiameterMm):null;let velocityLine='請選擇管徑以檢查流速';let warning='';if(velocity!==null){velocityLine=`估算流速：${velocity.toFixed(2)} m/s`;warning=velocity<=2.0?'流速良好':velocity<=3.0?'流速偏高，建議確認噪音、壓損與泵浦揚程':'流速過高，建議放大管徑或重新確認設計條件';warning=`<div style="margin-top:8px;padding:8px;border-left:4px solid #d97706;background:#fff7ed;">${warning}</div>`;}r.innerHTML=`估算流量：約 ${format1(flow)} LPM<br>${selectedPipe?`已選擇：${selectedPipe.label}<br>估算內徑：約 ${selectedPipe.innerDiameterMm} mm`:'已選擇：-'}<br>換算量測壓差：${format1(paToDp(measuredPa,'kPa'))} kPa<br>${velocityLine}${warning}`;};['measuredDp','measuredUnit','pipeUsed','refFlow','refDp','refDpUnit'].forEach(i=>document.getElementById(i).addEventListener('input',calc));} 
   if(id==='vent'){
     panel('換氣量計算','依室內長、寬、高與每小時換氣次數 ACH，估算所需換氣量。',`<div class='grid two'>${field('l','室內長度','例如 13.2')}<label>長度單位</label><select id='ul'><option value='m'>m</option><option value='cm'>cm</option></select>${field('w','室內寬度','例如 10.2')}<label>寬度單位</label><select id='uw'><option value='m'>m</option><option value='cm'>cm</option></select>${field('h','室內高度','例如 3.0')}<label>高度單位</label><select id='uh'><option value='m'>m</option><option value='cm'>cm</option></select>${field('ach','換氣次數 ACH（次/小時）','例如 6','','ACH = Air Changes per Hour，每小時換氣次數')}</div><div id='r' class='result-box'>-</div>`);
     const calc=()=>{const lm=toM(+l.value,ul.value),wm=toM(+w.value,uw.value),hm=toM(+h.value,uh.value),a=+ach.value;if(![lm,wm,hm,a].every(Number.isFinite)||a<=0){r.textContent='-';return;}const v=lm*wm*hm,cmh=v*a;r.innerHTML=`空間體積 ${format1(v)} m³<br>每小時換氣量 ${format1(cmh)} CMH / m³/h<br>每分鐘換氣量 ${format1(cmh/60)} CMM / m³/min<br>CFM ${format1(m3hToCfm(cmh))}`};['l','w','h','ul','uw','uh','ach'].forEach(i=>document.getElementById(i).addEventListener('input',calc));
