@@ -19,10 +19,35 @@ test('kW估算電流包含完整輸入與輸出',()=>{
 });
 
 test('機房工具輸出完整四段',()=>{
-  ['A. 機房空間','B. 散熱評估','C. 預估耗電量','D. 比例圖'].forEach((k)=>assert.ok(appJs.includes(k)));
+  ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 散熱比例圖'].forEach((k)=>assert.ok(appJs.includes(k)));
   ['dc:{title','heat:{title','power:{title'].forEach((k)=>assert.ok(appJs.includes(k)));
 });
 
+
+
+test('機房負載概算供電容量邏輯使用 IT+UPS 損耗且電流約 279A',()=>{
+  const rows = 4;
+  const per = 4;
+  const rackKw = 10;
+  const upsFactor = 0.09;
+  const voltage = 380;
+  const pf = 0.95;
+
+  const itLoadKw = rows * per * rackKw;
+  const upsLossKw = itLoadKw * upsFactor;
+  const itUpsSupplyKw = itLoadKw + upsLossKw;
+  const current = itUpsSupplyKw * 1000 / (Math.sqrt(3) * voltage * pf);
+
+  assert.equal(format1(itLoadKw), '160');
+  assert.equal(format1(upsLossKw), '14.4');
+  assert.equal(format1(itUpsSupplyKw), '174.4');
+  assert.equal(format1(current), '278.9');
+
+  assert.ok(appJs.includes('IT + UPS 損耗（供電容量估算，供 NFB / 幹線容量初估參考）'));
+  assert.ok(appJs.includes('C. 預估用電容量 / NFB 估算'));
+  assert.ok(!appJs.includes("[['UPS',ups],['空調',hvac],['其他',other],['合計',tp]]"));
+  assert.ok(!appJs.includes('tp=ups+hvac+other'));
+});
 test('壓差估算主結果僅顯示現場初估三項資訊且不含工程細節',()=>{
   assert.ok(appJs.includes('A. 現場初估'));
   assert.ok(appJs.includes('壓差推估流量：約 ${format1(displayFlowLpm)} LPM'));
