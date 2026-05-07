@@ -23,22 +23,21 @@ test('機房工具輸出完整四段',()=>{
   ['dc:{title','heat:{title','power:{title'].forEach((k)=>assert.ok(appJs.includes(k)));
 });
 
-test('壓差估算顯示 HVAC 水側建議流速區間與高流速提醒',()=>{
+test('壓差估算主結果僅顯示現場初估三項資訊且不含工程細節',()=>{
   assert.ok(appJs.includes('A. 現場初估'));
-  assert.ok(appJs.includes('建議估算範圍：約 ${format1(flowAt1)}～${format1(flowAt25)} LPM'));
-  assert.ok(appJs.includes('建議流速 1.0 m/s 對應流量'));
-  assert.ok(appJs.includes('建議流速 2.5 m/s 對應流量'));
-  assert.ok(appJs.includes('警戒流速 3.0 m/s 對應流量'));
-  assert.ok(appJs.includes('理論粗估流量'));
-  assert.ok(!appJs.includes('合理流速 5 m/s 對應流量'));
-  assert.ok(!appJs.includes('合理估算範圍：約 ${format1(flowAt3)} ～ ${format1(flowAt5)} LPM'));
-  assert.ok(appJs.includes('流速異常偏高'));
-  assert.ok(appJs.includes('不宜直接視為合理水量'));
+  assert.ok(appJs.includes('預估流量：約 ${format1(displayFlowLpm)} LPM'));
+  assert.ok(appJs.includes('判讀：${judgment}'));
+  assert.ok(appJs.includes('建議：${advice}'));
+  ['理論粗估流速','建議流速 1.0','建議流速 2.5','警戒流速 3.0','管徑內徑','換算過程','使用公式','查看工程細節'].forEach((text)=>{
+    assert.ok(!appJs.includes(text));
+  });
 });
 
-test('設備參考點修正為選填且顯示公式',()=>{
-  assert.ok(appJs.includes('設備參考點修正（選填）'));
-  assert.ok(appJs.includes('correctedFlowLpm = referenceFlowLpm × √(measuredDpPa / referenceDpPa)'));
+test('設備參考點修正顯示結果與判讀且不顯示公式',()=>{
+  assert.ok(appJs.includes('設備參考點修正'));
+  assert.ok(appJs.includes('修正流量：約 ${format1(correctedFlowLpm)} LPM'));
+  assert.ok(appJs.includes('判讀：依參考流量與參考壓損修正'));
+  assert.ok(!appJs.includes('correctedFlowLpm = referenceFlowLpm × √(measuredDpPa / referenceDpPa)'));
   assert.ok(!appJs.includes('請先輸入參考流量'));
 });
 
@@ -61,23 +60,22 @@ test('壓差估算管徑下拉包含 400A',()=>{
   assert.ok(appJs.includes('使用管徑'));
 });
 
-test('25A + 0.5 bar 對應建議與警戒流量數值正確',()=>{
+test('25A + 0.5 bar 會限幅並顯示需複核判讀',()=>{
   const pipe = pipeSizes.getPipeSizeById('DN25');
   const area = Math.PI * Math.pow(pipe.innerDiameterMm / 1000, 2) / 4;
-  const flowAt1 = area * 1 * 60000;
   const flowAt25 = area * 2.5 * 60000;
-  const flowAt3 = area * 3 * 60000;
   const measuredPa = 0.5 * 100000;
   const v = Math.sqrt((2 * measuredPa / 1000)) * 0.60;
   const rawFlowLpm = area * v * 60000;
   const rawVelocity = pipeSizes.calculateVelocityFromLpmAndDiameter(rawFlowLpm, pipe.innerDiameterMm);
 
-  assert.equal(format1(flowAt1), '33.3');
   assert.equal(format1(flowAt25), '83.4');
-  assert.equal(format1(flowAt3), '100');
   assert.equal(format1(rawFlowLpm), '200.1');
   assert.equal(format1(rawVelocity), '6');
   assert.ok(rawVelocity > 3);
+  assert.ok(appJs.includes('壓差推估結果偏高，需複核'));
+  assert.ok(appJs.includes('請確認壓差單位、量測點與管徑是否正確。'));
+  assert.ok(!appJs.includes('建議流速 1.0 m/s 對應流量'));
 });
 
 function format1(value){
