@@ -63,11 +63,18 @@ function initPipeSuggestTool(){
 }
 
 function initDpFlowTool(){
-  const calc=()=>{const measured=parsePositiveNumberInput(measuredDp.value); const pipe=getPipeSizeById(pipeUsed.value); if(!measured||!pipe){r.innerHTML='<b>預估流量（LPM）</b><br>-'; advResult.innerHTML=''; return;} const measuredPa=dpToPa(measured, measuredUnit.value);
-    const rf=parsePositiveNumberInput(refFlow.value); const rd=parsePositiveNumberInput(refDp.value); let flowLpm; let tag='初步估算'; if(rf&&rd){const refDpPa=dpToPa(rd, refDpUnit.value); flowLpm=rf*Math.sqrt(measuredPa/refDpPa); tag='設備修正估算';} else {const v=Math.sqrt((2*measuredPa/1000))*0.60; const area=Math.PI*Math.pow(pipe.innerDiameterMm/1000,2)/4; flowLpm=area*v*60000;}
-    const velocity=calculateVelocityFromLpmAndDiameter(flowLpm,pipe.innerDiameterMm); const warn=velocity>5?"<div class='muted'>請確認壓差單位、量測點、管徑內徑與設備選型資料是否正確。</div>":'';
-    r.innerHTML=`<b>預估流量（LPM）</b><br>${format1(flowLpm)}<br><span class='muted'>${tag}</span><br>參考流速：約 ${format1(velocity)} m/s${warn}`;
-    advResult.innerHTML = (rf&&rd)?`<div class='muted'>已使用公式：correctedFlowLpm = refFlowLpm × √(measuredPa / refDpPa)</div>`:'';
+  const calc=()=>{const measured=parsePositiveNumberInput(measuredDp.value); const pipe=getPipeSizeById(pipeUsed.value); if(!measured||!pipe){r.innerHTML='<b>A. 現場初估</b><br>-'; advResult.innerHTML=''; return;} const measuredPa=dpToPa(measured, measuredUnit.value);
+    const v=Math.sqrt((2*measuredPa/1000))*0.60; const area=Math.PI*Math.pow(pipe.innerDiameterMm/1000,2)/4; const rawFlowLpm=area*v*60000; const rawVelocity=calculateVelocityFromLpmAndDiameter(rawFlowLpm,pipe.innerDiameterMm);
+    const flowAt3=area*3*60000; const flowAt5=area*5*60000;
+    let judgment='';
+    if(rawVelocity<=3){judgment='可作為現場初估參考。';}
+    else if(rawVelocity<=5){judgment='流速偏高，建議複核量測點與系統狀況。';}
+    else {judgment='流速異常偏高，正常空調水系統通常不會以此狀態作為合理運轉點，請確認壓差單位、量測點與管徑。';}
+    const fieldEstimate = rawVelocity>5?`合理估算範圍：約 ${format1(flowAt3)} ～ ${format1(flowAt5)} LPM`:`初估流量：約 ${format1(rawFlowLpm)} LPM`;
+    r.innerHTML=`<b>A. 現場初估</b><br>${fieldEstimate}<br>理論粗估流量：約 ${format1(rawFlowLpm)} LPM<br>理論粗估流速：約 ${format1(rawVelocity)} m/s<br>合理流速 3 m/s 對應流量：約 ${format1(flowAt3)} LPM<br>合理流速 5 m/s 對應流量：約 ${format1(flowAt5)} LPM<br>工程判斷：${judgment}`;
+
+    const rf=parsePositiveNumberInput(refFlow.value); const rd=parsePositiveNumberInput(refDp.value);
+    if(rf&&rd){const refDpPa=dpToPa(rd, refDpUnit.value); const correctedFlowLpm=rf*Math.sqrt(measuredPa/refDpPa); const correctedVelocity=calculateVelocityFromLpmAndDiameter(correctedFlowLpm,pipe.innerDiameterMm); advResult.innerHTML=`<b>B. 設備參考點修正（選填）</b><br>修正流量：約 ${format1(correctedFlowLpm)} LPM<br>修正後流速：約 ${format1(correctedVelocity)} m/s<br><span class='muted'>公式：correctedFlowLpm = referenceFlowLpm × √(measuredDpPa / referenceDpPa)</span>`;} else {advResult.innerHTML='';}
   };
   ['measuredDp','measuredUnit','pipeUsed','refFlow','refDp','refDpUnit'].forEach(i=>document.getElementById(i).addEventListener('input',calc));
 }
@@ -89,7 +96,7 @@ const toolRegistry = {
   vel:{title:'流速換算',subtitle:'m/s、km/h、ft/s。',render:()=>`<div class='grid two'>${field('ms','m/s')}${field('kmh','km/h')}${field('fts','ft/s')}</div>`,init:initVelocityTool},
   punit:{title:'電力單位換算',subtitle:'W、kW、hp。',render:()=>`<div class='grid two'>${field('w','W')}${field('kw','kW')}${field('hp','hp')}</div>`,init:initPowerUnitTool},
   pipe:{title:'水管管徑建議',subtitle:'依設計流量（LPM）建議管徑與流速。',render:()=>`<div class='grid two'>${field('qLpm','設計流量 LPM')}</div><div id='r' class='result-box'>-</div><p class='note'>3 m/s 僅作為設計選管建議值，實際設計仍需依現場條件複核。</p>`,init:initPipeSuggestTool},
-  dp:{title:'壓差估算流量',subtitle:'空調設備運轉中，依現場實測進出水壓差，快速估算目前水量。',render:()=>`<div class='grid two'>${field('measuredDp','目前量測壓差')}${selectField('measuredUnit','量測壓差單位',`<option>Pa</option><option selected>kPa</option><option>mH2O</option><option>bar</option>`)}${selectField('pipeUsed','使用管徑',PIPE_SIZE_OPTIONS.map(p=>`<option value='${p.id}'>${p.label}</option>`).join(''))}</div><div id='r' class='result-box'><b>預估流量（LPM）</b><br>-</div><div class='result-box subtle'><b>進階設定</b><div class='muted'>若有設備選型表或 TAB 平衡報告中的參考流量與參考壓損，可用來修正目前壓差下的估算流量。</div><div class='grid two'>${field('refFlow','參考流量（LPM）')}${field('refDp','參考壓損')}${selectField('refDpUnit','壓損單位',`<option>Pa</option><option selected>kPa</option><option>mH2O</option><option>bar</option>`)}</div><div id='advResult'></div></div>`,init:initDpFlowTool},
+  dp:{title:'壓差估算流量',subtitle:'空調設備運轉中，依現場實測進出水壓差，快速估算目前水量。',render:()=>`<div class='grid two'>${field('measuredDp','目前量測壓差')}${selectField('measuredUnit','量測壓差單位',`<option>Pa</option><option selected>kPa</option><option>mH2O</option><option>bar</option>`)}${selectField('pipeUsed','使用管徑',PIPE_SIZE_OPTIONS.map(p=>`<option value='${p.id}'>${p.label}</option>`).join(''))}</div><div id='r' class='result-box'><b>A. 現場初估</b><br>-</div><div class='result-box subtle'><b>進階設定</b><div class='muted'>設備型錄 / TAB 參考點可在最後做進階修正，非必填。</div><div class='grid two'>${field('refFlow','參考流量（LPM）')}${field('refDp','參考壓損')}${selectField('refDpUnit','壓損單位',`<option>Pa</option><option selected>kPa</option><option>mH2O</option><option>bar</option>`)}</div><div id='advResult'></div></div>`,init:initDpFlowTool},
   vent:{title:'換氣量計算',subtitle:'依長寬高與ACH估算',render:()=>`<div class='grid two'>${field('l','室內長度')}${selectField('ul','長度單位',`<option value='m'>m</option><option value='cm'>cm</option>`)}${field('w','室內寬度')}${selectField('uw','寬度單位',`<option value='m'>m</option><option value='cm'>cm</option>`)}${field('h','室內高度')}${selectField('uh','高度單位',`<option value='m'>m</option><option value='cm'>cm</option>`)}${field('ach','換氣次數 ACH')}</div><div id='r' class='result-box'>-</div>`,init:initVentilationTool},
   cool:{title:'冷負載估算',subtitle:'依面積估算',render:()=>`<div class='grid two'>${field('a','面積 m²')}${field('d','冷負載密度 W/m²','','150')}${field('s','安全係數','','1.0')}</div><div id='r' class='result-box'>-</div>`,init:initCoolingLoadTool},
   air:{title:'風量估算',subtitle:'依冷負載與ΔT',render:()=>`<div class='grid two'>${field('k','冷負載 kW')}${field('t','送回風溫差 ΔT °C','','10')}</div><div id='r' class='result-box'>-</div>`,init:initAirflowTool},
