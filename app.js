@@ -65,16 +65,15 @@ function initPipeSuggestTool(){
 function initDpFlowTool(){
   const calc=()=>{const measured=parsePositiveNumberInput(measuredDp.value); const pipe=getPipeSizeById(pipeUsed.value); if(!measured||!pipe){r.innerHTML='<b>A. 現場初估</b><br>-'; advResult.innerHTML=''; return;} const measuredPa=dpToPa(measured, measuredUnit.value);
     const v=Math.sqrt((2*measuredPa/1000))*0.60; const area=Math.PI*Math.pow(pipe.innerDiameterMm/1000,2)/4; const rawFlowLpm=area*v*60000; const rawVelocity=calculateVelocityFromLpmAndDiameter(rawFlowLpm,pipe.innerDiameterMm);
-    const flowAt1=area*1*60000; const flowAt25=area*2.5*60000; const flowAt3=area*3*60000;
-    let judgment='合理';
-    let advice='請確認壓差單位、量測點與管徑是否正確。';
+    const flowAt25=area*2.5*60000; const flowAt3=area*3*60000;
     let displayFlowLpm=rawFlowLpm;
-    if(rawVelocity>3){judgment='壓差推估結果偏高，需複核'; advice='請確認壓差單位、量測點與管徑是否正確。'; displayFlowLpm=flowAt25;}
-    else if(rawVelocity>2.5){judgment='偏高需複核'; advice='請確認壓差單位、量測點與管徑是否正確。'; displayFlowLpm=Math.min(rawFlowLpm,flowAt3);}
-    r.innerHTML=`<b>A. 現場初估</b><br>預估流量：約 ${format1(displayFlowLpm)} LPM<br>判讀：${judgment}<br>建議：${advice}`;
+    let reviewReminder='';
+    if(rawVelocity>3){displayFlowLpm=flowAt25; reviewReminder='提醒：此推估值對輸入條件較敏感，請確認壓差單位、量測點與管徑是否正確。';}
+    else if(rawVelocity>2.5){displayFlowLpm=Math.min(rawFlowLpm,flowAt3); reviewReminder='提醒：此推估值對輸入條件較敏感，請確認壓差單位、量測點與管徑是否正確。';}
+    r.innerHTML=`<b>A. 現場初估</b><br>壓差推估流量：約 ${format1(displayFlowLpm)} LPM<br>性質：依目前壓差與管徑推估，非流量計實測值。<br>提醒：實際流量請以流量計、TAB 平衡報告或設備量測資料為準。${reviewReminder?`<br>${reviewReminder}`:''}`;
 
     const rf=parsePositiveNumberInput(refFlow.value); const rd=parsePositiveNumberInput(refDp.value);
-    if(rf&&rd){const refDpPa=dpToPa(rd, refDpUnit.value); const correctedFlowLpm=rf*Math.sqrt(measuredPa/refDpPa); advResult.innerHTML=`<b>B. 設備參考點修正</b><br>修正流量：約 ${format1(correctedFlowLpm)} LPM<br>判讀：依參考流量與參考壓損修正`;} else {advResult.innerHTML='';}
+    if(rf&&rd){const refDpPa=dpToPa(rd, refDpUnit.value); const correctedFlowLpm=rf*Math.sqrt(measuredPa/refDpPa); advResult.innerHTML=`<b>B. 設備參考點修正</b><br>修正推估流量：約 ${format1(correctedFlowLpm)} LPM<br>性質：依參考流量與參考壓損修正之推估值<br>提醒：仍需以流量計或 TAB 資料確認`; } else {advResult.innerHTML='';}
   };
   ['measuredDp','measuredUnit','pipeUsed','refFlow','refDp','refDpUnit'].forEach(i=>document.getElementById(i).addEventListener('input',calc));
 }
