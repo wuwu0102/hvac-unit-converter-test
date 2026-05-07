@@ -19,15 +19,15 @@ test('kW估算電流包含完整輸入與輸出',()=>{
 });
 
 test('機房工具輸出完整四段',()=>{
-  ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 散熱比例圖'].forEach((k)=>assert.ok(appJs.includes(k)));
+  ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 建議配置','E. 散熱比例圖'].forEach((k)=>assert.ok(appJs.includes(k)));
   ['dc:{title','heat:{title','power:{title'].forEach((k)=>assert.ok(appJs.includes(k)));
 });
 
 
 
-test('機房負載概算供電容量邏輯使用 IT+UPS 損耗且電流約 279A',()=>{
+test('機房負載概算供電與建議級距邏輯正確',()=>{
   const rows = 4;
-  const per = 4;
+  const per = 5;
   const rackKw = 10;
   const upsFactor = 0.09;
   const voltage = 380;
@@ -38,13 +38,26 @@ test('機房負載概算供電容量邏輯使用 IT+UPS 損耗且電流約 279A'
   const itUpsSupplyKw = itLoadKw + upsLossKw;
   const current = itUpsSupplyKw * 1000 / (Math.sqrt(3) * voltage * pf);
 
-  assert.equal(format1(itLoadKw), '160');
-  assert.equal(format1(upsLossKw), '14.4');
-  assert.equal(format1(itUpsSupplyKw), '174.4');
-  assert.equal(format1(current), '278.9');
+  const hvacKw = (itLoadKw + upsLossKw + itLoadKw*0.03 + (0*21.53/1000) + (5*0.1)) * 0.4;
+  const coolingRt = hvacKw / 3.5168525;
 
-  assert.ok(appJs.includes('IT + UPS 損耗（供電容量估算，供 NFB / 幹線容量初估參考）'));
+  assert.equal(format1(itLoadKw), '200');
+  assert.equal(format1(upsLossKw), '18');
+  assert.equal(format1(itUpsSupplyKw), '218');
+  assert.equal(format1(current), '348.6');
+  const totalCurrentA = (itUpsSupplyKw + hvacKw + itLoadKw * 0.14) * 1000 / (Math.sqrt(3) * voltage * pf);
+  assert.ok(Math.abs(totalCurrentA - 539.8) < 5);
+  assert.equal(Math.ceil(itUpsSupplyKw / 250) * 250, 250);
+  assert.equal(format1(coolingRt), '25.5');
+  assert.equal(Math.ceil(coolingRt / 5) * 5, 30);
+  assert.ok(appJs.includes('const roundUpToStep = (value, steps) =>'));
+  assert.ok(appJs.includes('const roundUpToMultiple = (value, multiple) =>'));
+
+  assert.ok(appJs.includes('IT + UPS 損耗'));
+  assert.ok(appJs.includes('IT + UPS 損耗為 UPS 供電容量初估，供 NFB / 幹線容量初估參考。'));
   assert.ok(appJs.includes('C. 預估用電容量 / NFB 估算'));
+  assert.ok(appJs.includes('D. 建議配置'));
+  assert.ok(appJs.includes('NFB / 幹線'));
   assert.ok(!appJs.includes("[['UPS',ups],['空調',hvac],['其他',other],['合計',tp]]"));
   assert.ok(!appJs.includes('tp=ups+hvac+other'));
 });
