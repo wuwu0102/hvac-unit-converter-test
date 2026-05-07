@@ -66,15 +66,15 @@ function initDpFlowTool(){
   const calc=()=>{const measured=parsePositiveNumberInput(measuredDp.value); const pipe=getPipeSizeById(pipeUsed.value); if(!measured||!pipe){r.innerHTML='<b>A. 現場初估</b><br>-'; advResult.innerHTML=''; return;} const measuredPa=dpToPa(measured, measuredUnit.value);
     const v=Math.sqrt((2*measuredPa/1000))*0.60; const area=Math.PI*Math.pow(pipe.innerDiameterMm/1000,2)/4; const rawFlowLpm=area*v*60000; const rawVelocity=calculateVelocityFromLpmAndDiameter(rawFlowLpm,pipe.innerDiameterMm);
     const flowAt1=area*1*60000; const flowAt25=area*2.5*60000; const flowAt3=area*3*60000;
-    let judgment='';
-    if(rawVelocity<=2.5){judgment='流速在空調設備水側常用判讀範圍內。';}
-    else if(rawVelocity<=3){judgment='流速偏高，建議確認管徑、壓差單位與量測點。';}
-    else {judgment='流速異常偏高。以空調設備水側運轉判讀來看，此結果不宜直接視為合理水量，請優先確認壓差單位、量測點與管徑。';}
-    const fieldEstimate = `建議估算範圍：約 ${format1(flowAt1)}～${format1(flowAt25)} LPM`;
-    r.innerHTML=`<b>A. 現場初估</b><br>${fieldEstimate}<br>理論粗估流量：約 ${format1(rawFlowLpm)} LPM<br>工程判斷：${judgment}<details class='eng-detail'><summary>查看工程細節 ▼</summary><div class='eng-detail-body'>理論粗估流速：約 ${format1(rawVelocity)} m/s<br>建議流速 1.0 m/s 對應流量：約 ${format1(flowAt1)} LPM<br>建議流速 2.5 m/s 對應流量：約 ${format1(flowAt25)} LPM<br>警戒流速 3.0 m/s 對應流量：約 ${format1(flowAt3)} LPM<br>管徑內徑：約 ${format1(pipe.innerDiameterMm)} mm<br>換算過程：先將量測壓差換算為 Pa，再以估算流速與管截面積推算流量。<br>使用公式：v = 0.60 × √(2 × ΔP / 1000)、Q = A × v × 60000（LPM）</div></details>`;
+    let judgment='合理';
+    let advice='請確認壓差單位、量測點與管徑是否正確。';
+    let displayFlowLpm=rawFlowLpm;
+    if(rawVelocity>3){judgment='壓差推估結果偏高，需複核'; advice='請確認壓差單位、量測點與管徑是否正確。'; displayFlowLpm=flowAt25;}
+    else if(rawVelocity>2.5){judgment='偏高需複核'; advice='請確認壓差單位、量測點與管徑是否正確。'; displayFlowLpm=Math.min(rawFlowLpm,flowAt3);}
+    r.innerHTML=`<b>A. 現場初估</b><br>預估流量：約 ${format1(displayFlowLpm)} LPM<br>判讀：${judgment}<br>建議：${advice}`;
 
     const rf=parsePositiveNumberInput(refFlow.value); const rd=parsePositiveNumberInput(refDp.value);
-    if(rf&&rd){const refDpPa=dpToPa(rd, refDpUnit.value); const correctedFlowLpm=rf*Math.sqrt(measuredPa/refDpPa); const correctedVelocity=calculateVelocityFromLpmAndDiameter(correctedFlowLpm,pipe.innerDiameterMm); advResult.innerHTML=`<b>B. 設備參考點修正（選填）</b><br>修正流量：約 ${format1(correctedFlowLpm)} LPM<br>修正後流速：約 ${format1(correctedVelocity)} m/s<br><span class='muted'>公式：correctedFlowLpm = referenceFlowLpm × √(measuredDpPa / referenceDpPa)</span>`;} else {advResult.innerHTML='';}
+    if(rf&&rd){const refDpPa=dpToPa(rd, refDpUnit.value); const correctedFlowLpm=rf*Math.sqrt(measuredPa/refDpPa); advResult.innerHTML=`<b>B. 設備參考點修正</b><br>修正流量：約 ${format1(correctedFlowLpm)} LPM<br>判讀：依參考流量與參考壓損修正`;} else {advResult.innerHTML='';}
   };
   ['measuredDp','measuredUnit','pipeUsed','refFlow','refDp','refDpUnit'].forEach(i=>document.getElementById(i).addEventListener('input',calc));
 }
