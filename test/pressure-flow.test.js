@@ -14,13 +14,28 @@ test('app.js 功能完整性',()=>{
 
 test('kW估算電流包含完整輸入與輸出',()=>{
   ['pk','vk','pfk'].forEach((id)=>assert.ok(appJs.includes(`'${id}'`)));
+  assert.ok(appJs.includes("field('vk','電壓 V','例如 380','380')"));
+  assert.ok(appJs.includes("field('pfk','功率因數 PF','','0.95')"));
   assert.ok(appJs.includes('p/(v*pf)'));
   assert.ok(appJs.includes('p/(Math.sqrt(3)*v*pf)'));
 });
 
+
+
+test('首頁分類調整：D 區只有整合估算，E 區保留三個電力工具',()=>{
+  assert.ok(appJs.includes("['dc','D','機房 / 資料中心整合估算','負載、散熱、用電容量、建議配置與 PUE']"));
+  assert.ok(!appJs.includes("['heat','D','機房散熱評估'"));
+  assert.ok(!appJs.includes("['power','D','預估用電容量 / NFB 估算'"));
+  assert.ok(!appJs.includes("['dc3','D','380V 三相電流概算'"));
+  assert.ok(appJs.includes("['kwi','E','kW估算電流','單相/三相電流估算']"));
+  assert.ok(appJs.includes("['tpow','E','三相電力估算','P、V、I、PF關係']"));
+  assert.ok(appJs.includes("['spow','E','單相電力估算','P、V、I、PF關係']"));
+});
+
 test('機房工具輸出完整四段',()=>{
   ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 建議配置','E. 散熱比例圖','F. 總用電比例圖','G. 理論 PUE'].forEach((k)=>assert.ok(appJs.includes(k)));
-  ['dc:{title','heat:{title','power:{title'].forEach((k)=>assert.ok(appJs.includes(k)));
+  assert.ok(appJs.includes("dc:{title:'機房 / 資料中心整合估算'"));
+  ['heat:{title','power:{title','dc3:{title'].forEach((k)=>assert.ok(!appJs.includes(k)));
 });
 
 
