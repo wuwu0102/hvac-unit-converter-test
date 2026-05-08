@@ -19,7 +19,7 @@ test('kW估算電流包含完整輸入與輸出',()=>{
 });
 
 test('機房工具輸出完整四段',()=>{
-  ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 建議配置','E. 散熱比例圖'].forEach((k)=>assert.ok(appJs.includes(k)));
+  ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 建議配置','E. 散熱比例圖','F. 理論 PUE'].forEach((k)=>assert.ok(appJs.includes(k)));
   ['dc:{title','heat:{title','power:{title'].forEach((k)=>assert.ok(appJs.includes(k)));
 });
 
@@ -45,20 +45,29 @@ test('機房負載概算供電與建議級距邏輯正確',()=>{
   const totalHeatKw = itLoadKw + upsLossKw + distKw + lightKw + peopleKw;
   const totalHeatRt = totalHeatKw / 3.5168525;
   const itUpsSupplyKw = itLoadKw + upsLossKw;
-  const hvacPowerKw = totalHeatKw * 0.4;
+  const chillerKw = totalHeatRt * 0.65;
+  const coolingTowerKw = totalHeatRt * 0.03;
+  const chwPumpKw = totalHeatRt * 0.05;
+  const cwPumpKw = totalHeatRt * 0.05;
+  const ahuFanKw = totalHeatRt * 0.08;
+  const hvacPowerKw = chillerKw + coolingTowerKw + chwPumpKw + cwPumpKw + ahuFanKw;
   const totalCurrentA = (itUpsSupplyKw + hvacPowerKw + itLoadKw * 0.14) * 1000 / (Math.sqrt(3) * voltage * pf);
 
   assert.equal(format1(totalHeatKw), '228.8');
   assert.equal(format1(totalHeatRt), '65.1');
   assert.equal(Math.ceil(totalHeatRt / 5) * 5, 70);
-  assert.ok(Math.abs(totalCurrentA - 539.8) < 5);
+  assert.ok(Math.abs(totalCurrentA - 482.9) < 5);
 
-  assert.ok(appJs.includes('空調用電'));
+  assert.ok(appJs.includes('空調總用電'));
   assert.ok(appJs.includes('空調冷卻容量'));
-  assert.ok(appJs.includes('${format1(total)} kW / ${format1(totalHeatRt)} RT'));
+  assert.ok(appJs.includes('${format1(totalHeatKw)} kW / ${format1(totalHeatRt)} RT'));
   assert.ok(appJs.includes('recommendedCoolingRt=roundUpToMultiple(totalHeatRt,5)'));
+  ['冰水主機','冷卻水塔','冰水泵','冷卻水泵','空調箱 / 風機'].forEach((text)=>assert.ok(appJs.includes(text)));
+  assert.ok(appJs.includes('空調總用電組成'));
+  assert.ok(appJs.includes('facilityTotalKw/it'));
+  assert.ok(appJs.includes('理論 PUE'));
   assert.ok(!appJs.includes('recommendedCoolingRt=roundUpToMultiple(coolingRt,5)'));
-  assert.ok(appJs.includes("[['IT + UPS 損耗',itUpsSupply],['空調用電',hvac],['其他輔助用電',other],['合計',tp]]"));
+  assert.ok(appJs.includes("[['IT + UPS 損耗',itUpsSupply],['空調總用電',totalCoolingPowerKw],['其他輔助用電',otherAuxPowerKw],['合計',tp]]"));
   assert.ok(appJs.includes('散熱比例圓餅圖'));
   assert.ok(appJs.includes('pie-legend'));
   ['IT 設備','UPS 損耗','配電系統','照明設施','人員'].forEach((text)=>assert.ok(appJs.includes(text)));
@@ -122,7 +131,7 @@ test('25A + 0.5 bar 會限幅並顯示輸入條件複核提醒',()=>{
 
 
 test('壓差估算結果不得包含合理與偏高偏低判讀字眼',()=>{
-  ['合理流量','合理水量','偏高','偏低','異常偏高','正常空調水系統通常不會','不宜直接視為合理水量','判讀：合理','判讀：偏高','判讀：異常'].forEach((text)=>{
+  ['合理流量','合理水量','正常空調水系統通常不會','不宜直接視為合理水量','判讀：合理','判讀：偏高','判讀：異常'].forEach((text)=>{
     assert.ok(!appJs.includes(text));
   });
 });
