@@ -36,3 +36,21 @@ test('390px 手機版避免水平溢出設定存在',()=>{
   assert.ok(appJs.includes('NFB / 幹線'));
   assert.ok(appJs.includes('pie-legend'));
 });
+
+
+test('dc page includes E/F/G sections in order',()=>{
+  assert.ok(appJs.includes("buildPieSection('E. 散熱比例圖'"));
+  assert.ok(appJs.includes("buildPieSection('F. 總用電比例圖'"));
+  assert.ok(appJs.includes('G. 理論 PUE'));
+  const barsStart=appJs.indexOf('bars.innerHTML=`');
+  const idxE=appJs.indexOf("buildPieSection('E. 散熱比例圖'", barsStart);
+  const idxF=appJs.indexOf("buildPieSection('F. 總用電比例圖'", barsStart);
+  assert.ok(idxE!==-1 && idxF!==-1 && idxE < idxF);
+});
+
+test('F. 總用電比例圖 legend and total formula are consistent with section C',()=>{
+  assert.ok(appJs.includes("['IT + UPS 損耗',itUpsSupply]"));
+  assert.ok(appJs.includes("['空調總用電',totalCoolingPowerKw]"));
+  assert.ok(appJs.includes("['其他輔助用電',otherAuxPowerKw]"));
+  assert.ok(appJs.includes('tp=itUpsSupply+totalCoolingPowerKw+otherAuxPowerKw'));
+});
