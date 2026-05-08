@@ -26,41 +26,44 @@ test('機房工具輸出完整四段',()=>{
 
 
 test('機房負載概算供電與建議級距邏輯正確',()=>{
-  const rows = 4;
-  const per = 5;
+  const rows = 5;
+  const per = 4;
   const rackKw = 10;
   const upsFactor = 0.09;
+  const distFactor = 0.03;
+  const area = 200;
+  const lightDensity = 21.53;
+  const people = 5;
   const voltage = 380;
   const pf = 0.95;
 
   const itLoadKw = rows * per * rackKw;
   const upsLossKw = itLoadKw * upsFactor;
+  const distKw = itLoadKw * distFactor;
+  const lightKw = area * lightDensity / 1000;
+  const peopleKw = people * 0.1;
+  const totalHeatKw = itLoadKw + upsLossKw + distKw + lightKw + peopleKw;
+  const totalHeatRt = totalHeatKw / 3.5168525;
   const itUpsSupplyKw = itLoadKw + upsLossKw;
-  const current = itUpsSupplyKw * 1000 / (Math.sqrt(3) * voltage * pf);
+  const hvacPowerKw = totalHeatKw * 0.4;
+  const totalCurrentA = (itUpsSupplyKw + hvacPowerKw + itLoadKw * 0.14) * 1000 / (Math.sqrt(3) * voltage * pf);
 
-  const hvacKw = (itLoadKw + upsLossKw + itLoadKw*0.03 + (0*21.53/1000) + (5*0.1)) * 0.4;
-  const coolingRt = hvacKw / 3.5168525;
-
-  assert.equal(format1(itLoadKw), '200');
-  assert.equal(format1(upsLossKw), '18');
-  assert.equal(format1(itUpsSupplyKw), '218');
-  assert.equal(format1(current), '348.6');
-  const totalCurrentA = (itUpsSupplyKw + hvacKw + itLoadKw * 0.14) * 1000 / (Math.sqrt(3) * voltage * pf);
+  assert.equal(format1(totalHeatKw), '228.8');
+  assert.equal(format1(totalHeatRt), '65.1');
+  assert.equal(Math.ceil(totalHeatRt / 5) * 5, 70);
   assert.ok(Math.abs(totalCurrentA - 539.8) < 5);
-  assert.equal(Math.ceil(itUpsSupplyKw / 250) * 250, 250);
-  assert.equal(format1(coolingRt), '25.5');
-  assert.equal(Math.ceil(coolingRt / 5) * 5, 30);
-  assert.ok(appJs.includes('const roundUpToStep = (value, steps) =>'));
-  assert.ok(appJs.includes('const roundUpToMultiple = (value, multiple) =>'));
 
-  assert.ok(appJs.includes('IT + UPS 損耗'));
-  assert.ok(appJs.includes('IT + UPS 損耗為 UPS 供電容量初估，供 NFB / 幹線容量初估參考。'));
-  assert.ok(appJs.includes('C. 預估用電容量 / NFB 估算'));
-  assert.ok(appJs.includes('D. 建議配置'));
-  assert.ok(appJs.includes('NFB / 幹線'));
-  assert.ok(!appJs.includes("[['UPS',ups],['空調',hvac],['其他',other],['合計',tp]]"));
-  assert.ok(!appJs.includes('tp=ups+hvac+other'));
+  assert.ok(appJs.includes('空調用電'));
+  assert.ok(appJs.includes('空調冷卻容量'));
+  assert.ok(appJs.includes('${format1(total)} kW / ${format1(totalHeatRt)} RT'));
+  assert.ok(appJs.includes('recommendedCoolingRt=roundUpToMultiple(totalHeatRt,5)'));
+  assert.ok(!appJs.includes('recommendedCoolingRt=roundUpToMultiple(coolingRt,5)'));
+  assert.ok(appJs.includes("[['IT + UPS 損耗',itUpsSupply],['空調用電',hvac],['其他輔助用電',other],['合計',tp]]"));
+  assert.ok(appJs.includes('散熱比例圓餅圖'));
+  assert.ok(appJs.includes('pie-legend'));
+  ['IT 設備','UPS 損耗','配電系統','照明設施','人員'].forEach((text)=>assert.ok(appJs.includes(text)));
 });
+
 test('壓差估算主結果僅顯示現場初估三項資訊且不含工程細節',()=>{
   assert.ok(appJs.includes('A. 現場初估'));
   assert.ok(appJs.includes('壓差推估流量：約 ${format1(displayFlowLpm)} LPM'));
