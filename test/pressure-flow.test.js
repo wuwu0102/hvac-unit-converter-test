@@ -19,7 +19,7 @@ test('kW估算電流包含完整輸入與輸出',()=>{
 });
 
 test('機房工具輸出完整四段',()=>{
-  ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 建議配置','E. 散熱比例圖','F. 理論 PUE'].forEach((k)=>assert.ok(appJs.includes(k)));
+  ['A. 機房空間','B. 散熱評估','C. 預估用電容量 / NFB 估算','D. 建議配置','E. 散熱比例圖','F. 總用電比例圖','G. 理論 PUE'].forEach((k)=>assert.ok(appJs.includes(k)));
   ['dc:{title','heat:{title','power:{title'].forEach((k)=>assert.ok(appJs.includes(k)));
 });
 
