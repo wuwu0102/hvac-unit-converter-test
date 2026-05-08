@@ -70,7 +70,7 @@ test('dc page has single D section and includes C-1 total power analysis',()=>{
   const dMatches = appJs.match(/D\. 建議配置/g) || [];
   assert.equal(dMatches.length, 1);
   assert.ok(appJs.includes('C-1. 總用電分析'));
-  ['IT + UPS 損耗','空調總用電','其他輔助用電','合計用電容量','合計電流'].forEach((label)=>{
+  ['IT + UPS 損耗','空調總用電','其他基礎設施用電','合計用電容量','合計電流'].forEach((label)=>{
     assert.ok(appJs.includes(label));
   });
 });
@@ -91,4 +91,11 @@ test('dc result section order is A, B, C, C-1, D, E, F, G',()=>{
   for(let i=1;i<order.length;i+=1){
     assert.ok(order[i-1] < order[i]);
   }
+});
+
+
+test('dc B section removes BTUh and cooling composition has A column',()=>{
+  const dcHeatSection = appJs.split("<section id='dc-heat'")[1]?.split('</section>')[0] || '';
+  assert.ok(!dcHeatSection.includes('BTU/h'));
+  assert.ok(appJs.includes("<h4>空調總用電組成</h4><table><tr><th>項目</th><th>kW</th><th>A</th></tr>"));
 });
