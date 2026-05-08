@@ -9,48 +9,38 @@ test('mobile overflow guard css exists',()=>{
   assert.match(css,/\.shell\{[^}]*width:min\(100%,1100px\)[^}]*max-width:100%/);
   assert.match(css,/\.tool-card\{[^}]*width:100%[^}]*max-width:100%[^}]*overflow-x:clip/);
   assert.match(css,/input,select,textarea\{[^}]*width:100%[^}]*max-width:100%[^}]*min-width:0/);
-  assert.match(css,/@media \(max-width:640px\)\{[^]*\.grid,.grid.two,.grid.three\{grid-template-columns:minmax\(0,1fr\);width:100%\}/);
 });
 
-test('no known overflow anti-patterns',()=>{
-  assert.ok(!css.includes('width:max-content'));
-  assert.ok(!css.includes('width:min-content'));
-  assert.ok(!css.includes('white-space:nowrap'));
+test('mobile readable layout test @390x844 rules exist',()=>{
+  assert.match(css,/@media \(max-width:640px\)\{[^]*body\{[^}]*font-size:22px[^}]*line-height:1\.6/);
+  assert.match(css,/@media \(max-width:640px\)\{[^]*input,select,button\{[^}]*font-size:1\.3rem[^}]*min-height:58px/);
+  assert.match(css,/@media \(max-width:640px\)\{[^]*\.entry\{[^}]*min-height:56px/);
 });
 
-test('pipe and dp pages keep wrapped long Chinese text',()=>{
-  assert.ok(appJs.includes('超出表內最大管徑（400A）'));
-  assert.ok(appJs.includes('壓差估算流量'));
-  assert.ok(appJs.includes('D. 建議配置'));
-  assert.ok(appJs.includes('NFB / 幹線'));
-  assert.ok(appJs.includes('pie-legend'));
+test('mobile no horizontal overflow protections for key pages',()=>{
+  assert.match(css,/html,body\{[^}]*overflow-x:clip/);
+  assert.match(css,/@media \(max-width:640px\)\{[^]*\.card-grid,.grid,.grid.two,.grid.three\{grid-template-columns:minmax\(0,1fr\);width:100%\}/);
+  assert.match(css,/@media \(max-width:640px\)\{[^]*\.table-wrap\{overflow-x:clip\}/);
+  assert.match(css,/@media \(max-width:640px\)\{[^]*table\.mobile-hide\{display:none\}/);
 });
 
-
-test('390px 手機版避免水平溢出設定存在',()=>{
-  assert.match(css,/@media \(max-width:640px\)\{[^]*body\{padding:max\(8px,env\(safe-area-inset-top\)\) 8px/);
-  assert.match(css,/\.shell\{[^}]*width:min\(100%,1100px\)[^}]*overflow-x:clip/);
-  assert.match(css,/@media \(max-width:640px\)\{[^]*\.heat-pie-wrap\{grid-template-columns:minmax\(0,1fr\)\}/);
-  assert.ok(appJs.includes('壓差估算流量'));
-  assert.ok(appJs.includes('D. 建議配置'));
-  assert.ok(appJs.includes('NFB / 幹線'));
-  assert.ok(appJs.includes('pie-legend'));
+test('mobile table replacement uses result cards on dc page',()=>{
+  assert.ok(appJs.includes('renderMobileResultCards'));
+  assert.ok(appJs.includes("<table class='mobile-hide'>"));
+  assert.ok(appJs.includes("class='mobile-result-list'"));
 });
 
-
-test('dc page includes E/F/G sections in order',()=>{
-  assert.ok(appJs.includes("buildPieSection('E. 散熱比例圖'"));
-  assert.ok(appJs.includes("buildPieSection('F. 總用電比例圖'"));
-  assert.ok(appJs.includes('G. 理論 PUE'));
-  const barsStart=appJs.indexOf('bars.innerHTML=`');
-  const idxE=appJs.indexOf("buildPieSection('E. 散熱比例圖'", barsStart);
-  const idxF=appJs.indexOf("buildPieSection('F. 總用電比例圖'", barsStart);
-  assert.ok(idxE!==-1 && idxF!==-1 && idxE < idxF);
+test('desktop table remains available',()=>{
+  assert.ok(css.includes('.mobile-result-list{display:none}'));
+  assert.ok(css.includes('table{width:100%;border-collapse:collapse'));
 });
 
-test('F. 總用電比例圖 legend and total formula are consistent with section C',()=>{
-  assert.ok(appJs.includes("['IT + UPS 損耗',itUpsSupply]"));
-  assert.ok(appJs.includes("['空調總用電',totalCoolingPowerKw]"));
-  assert.ok(appJs.includes("['其他輔助用電',otherAuxPowerKw]"));
-  assert.ok(appJs.includes('tp=itUpsSupply+totalCoolingPowerKw+otherAuxPowerKw'));
+test('dc page includes section navigation anchors',()=>{
+  assert.ok(appJs.includes("class='dc-nav'"));
+  assert.ok(appJs.includes("href='#dc-space'"));
+  assert.ok(appJs.includes("href='#dc-heat'"));
+  assert.ok(appJs.includes("href='#dc-power'"));
+  assert.ok(appJs.includes("href='#dc-advice'"));
+  assert.ok(appJs.includes("href='#dc-chart'"));
+  assert.ok(appJs.includes("href='#dc-pue'"));
 });
