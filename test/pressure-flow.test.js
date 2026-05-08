@@ -38,14 +38,22 @@ test('kW估算電流三相與單相計算值正確且切換可更新',()=>{
   assert.ok(appJs.includes("powerType=powerTypeK.value"));
   assert.ok(appJs.includes("powerType==='three'?p/(Math.sqrt(3)*v*pf):p/(v*pf)"));
 });
-test('首頁分類調整：D 區只有整合估算，E 區保留三個電力工具',()=>{
-  assert.ok(appJs.includes("['dc','D','機房 / 資料中心整合估算','負載、散熱、用電容量、建議配置與 PUE']"));
+test('首頁分類調整：A~F 順序正確且電力僅保留 kW估算電流',()=>{
+  assert.ok(appJs.includes("['dc','A','機房 / 資料中心整合估算','負載、散熱、用電容量、建議配置與 PUE']"));
+  assert.ok(appJs.includes("['vent','B','換氣量計算','依長寬高與ACH估算 CMH / CMM / CFM']"));
+  assert.ok(appJs.includes("['cool','B','冷負載估算','依長寬與模式初估容量']"));
+  assert.ok(appJs.includes("['pipe','C','水管管徑建議','依流量與流速建議管徑']"));
+  assert.ok(appJs.includes("['dp','C','壓差估算流量','依ΔP快速估算流量']"));
+  assert.ok(appJs.includes("['kwi','D','kW估算電流','單相/三相電流估算']"));
+  assert.ok(appJs.includes("['temp','E','溫度換算','°C / °F / K']"));
+  assert.ok(appJs.includes("['feedback','F','意見回饋','回饋建議與需求']"));
   assert.ok(!appJs.includes("['heat','D','機房散熱評估'"));
   assert.ok(!appJs.includes("['power','D','預估用電容量 / NFB 估算'"));
   assert.ok(!appJs.includes("['dc3','D','380V 三相電流概算'"));
-  assert.ok(appJs.includes("['kwi','E','kW估算電流','單相/三相電流估算']"));
-  assert.ok(appJs.includes("['tpow','E','三相電力估算','P、V、I、PF關係']"));
-  assert.ok(appJs.includes("['spow','E','單相電力估算','P、V、I、PF關係']"));
+  assert.ok(!appJs.includes("['tpow','E','三相電力估算','P、V、I、PF關係']"));
+  assert.ok(!appJs.includes("['spow','E','單相電力估算','P、V、I、PF關係']"));
+  assert.ok(!appJs.includes('風量估算'));
+  assert.ok(!appJs.includes('依冷負載與ΔT估算風量'));
 });
 
 test('機房工具輸出完整四段',()=>{

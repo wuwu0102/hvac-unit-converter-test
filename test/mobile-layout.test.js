@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const css = fs.readFileSync('styles.css','utf8').replace(/\s+/g,' ');
 const appJs = fs.readFileSync('app.js','utf8');
+const indexHtml = fs.readFileSync('index.html','utf8').replace(/\s+/g,' ');
 
 test('mobile overflow guard css exists',()=>{
   assert.match(css,/html,body\{[^}]*width:100%[^}]*max-width:100%[^}]*overflow-x:clip/);
@@ -22,6 +23,25 @@ test('mobile no horizontal overflow protections for key pages',()=>{
   assert.match(css,/@media \(max-width:640px\)\{[^]*\.card-grid,.grid,.grid.two,.grid.three\{grid-template-columns:minmax\(0,1fr\);width:100%\}/);
   assert.match(css,/@media \(max-width:640px\)\{[^]*\.table-wrap\{overflow-x:clip\}/);
   assert.match(css,/@media \(max-width:640px\)\{[^]*table\.mobile-hide\{display:none\}/);
+});
+
+test('首頁分類標號與順序為 A 到 F，且內容不含禁用工具名稱',()=>{
+  const expectedOrder = [
+    'A. 機房 / 資料中心估算',
+    'B. 空調與通風估算',
+    'C. 水系統估算',
+    'D. 電力估算',
+    'E. 基礎單位換算',
+    'F. 其他'
+  ];
+  const positions = expectedOrder.map((title) => indexHtml.indexOf(title));
+  positions.forEach((pos)=>assert.notEqual(pos,-1));
+  for(let i=1;i<positions.length;i+=1){
+    assert.ok(positions[i-1] < positions[i]);
+  }
+  ['風量估算','依冷負載與ΔT估算風量','三相電力估算','單相電力估算'].forEach((text)=>{
+    assert.equal(indexHtml.includes(text) || appJs.includes(text), false);
+  });
 });
 
 test('mobile table replacement uses result cards on dc page',()=>{
