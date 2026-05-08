@@ -23,13 +23,16 @@ test('pipe and dp pages keep wrapped long Chinese text',()=>{
   assert.ok(appJs.includes('壓差估算流量'));
   assert.ok(appJs.includes('D. 建議配置'));
   assert.ok(appJs.includes('NFB / 幹線'));
+  assert.ok(appJs.includes('pie-legend'));
 });
 
 
 test('390px 手機版避免水平溢出設定存在',()=>{
   assert.match(css,/@media \(max-width:640px\)\{[^]*body\{padding:max\(8px,env\(safe-area-inset-top\)\) 8px/);
   assert.match(css,/\.shell\{[^}]*width:min\(100%,1100px\)[^}]*overflow-x:clip/);
+  assert.match(css,/@media \(max-width:640px\)\{[^]*\.heat-pie-wrap\{grid-template-columns:minmax\(0,1fr\)\}/);
   assert.ok(appJs.includes('壓差估算流量'));
   assert.ok(appJs.includes('D. 建議配置'));
   assert.ok(appJs.includes('NFB / 幹線'));
+  assert.ok(appJs.includes('pie-legend'));
 });
