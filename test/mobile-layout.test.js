@@ -44,3 +44,31 @@ test('dc page includes section navigation anchors',()=>{
   assert.ok(appJs.includes("href='#dc-chart'"));
   assert.ok(appJs.includes("href='#dc-pue'"));
 });
+
+
+test('dc page has single D section and includes C-1 total power analysis',()=>{
+  const dMatches = appJs.match(/D\. 建議配置/g) || [];
+  assert.equal(dMatches.length, 1);
+  assert.ok(appJs.includes('C-1. 總用電分析'));
+  ['IT + UPS 損耗','空調總用電','其他輔助用電','合計用電容量','合計電流'].forEach((label)=>{
+    assert.ok(appJs.includes(label));
+  });
+});
+
+test('dc result section order is A, B, C, C-1, D, E, F, G',()=>{
+  const idx = (token)=>appJs.indexOf(token);
+  const order = [
+    "A. 機房空間",
+    "B. 散熱評估",
+    "C. 預估用電容量 / NFB 估算",
+    "C-1. 總用電分析",
+    "D. 建議配置",
+    "E. 散熱比例圖",
+    "F. 總用電比例圖",
+    "G. 理論 PUE"
+  ].map((token)=>idx(token));
+  order.forEach((pos)=>assert.notEqual(pos, -1));
+  for(let i=1;i<order.length;i+=1){
+    assert.ok(order[i-1] < order[i]);
+  }
+});
