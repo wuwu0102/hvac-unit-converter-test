@@ -106,7 +106,7 @@ test('機房負載概算供電與建議級距邏輯正確',()=>{
   assert.ok(appJs.includes('facilityTotalKw/it'));
   assert.ok(appJs.includes('理論 PUE'));
   assert.ok(!appJs.includes('recommendedCoolingRt=roundUpToMultiple(coolingRt,5)'));
-  assert.ok(appJs.includes("[['IT + UPS 損耗',itUpsSupply],['空調總用電',totalCoolingPowerKw],['其他輔助用電',otherAuxPowerKw],['合計',tp]]"));
+  assert.ok(appJs.includes("[['IT + UPS 損耗',itUpsSupply],['空調總用電',totalCoolingPowerKw],['其他基礎設施用電',otherInfrastructureKw],['合計',tp]]"));
   assert.ok(appJs.includes('散熱比例圓餅圖'));
   assert.ok(appJs.includes('pie-legend'));
   ['IT 設備','UPS 損耗','配電系統','照明設施','人員'].forEach((text)=>assert.ok(appJs.includes(text)));
@@ -223,4 +223,24 @@ test('冷負載估算 ft 單位可正確換算面積 m²',()=>{
   const m = 0.3048;
   const areaM2 = (10 * m) * (10 * m);
   assert.equal(format1(areaM2), '9.3');
+});
+
+
+test('NFB recommendation applies 1.2 safety factor before selecting step',()=>{
+  const roundUpToStep=(value,steps)=>steps.find((s)=>s>=value)??steps[steps.length-1];
+  const totalCurrentA=539.8;
+  const nfbDesignCurrentA=totalCurrentA*1.2;
+  const steps=[50,75,100,125,150,175,200,225,250,300,350,400,500,600,700,800,1000,1200];
+  assert.equal(nfbDesignCurrentA.toFixed(1),'647.8');
+  assert.equal(roundUpToStep(nfbDesignCurrentA,steps),700);
+  assert.ok(appJs.includes('nfbDesignCurrentA=totalCurrentA*1.2'));
+  assert.ok(appJs.includes('NFB 建議值已先乘 1.2 安全係數後再向上取常用級距。'));
+});
+
+test('F and G use otherInfrastructureKw consistently and no 其他輔助用電 label',()=>{
+  assert.ok(appJs.includes("powerParts=[['IT + UPS 損耗',itUpsSupply],['空調總用電',totalCoolingPowerKw],['其他基礎設施用電',otherInfrastructureKw]]"));
+  assert.ok(appJs.includes('facilityTotalKw=itUpsSupply+totalCoolingPowerKw+otherInfrastructureKw'));
+  assert.ok(appJs.includes("['其他基礎設施用電',`${format1(otherInfrastructureKw)} kW`]"));
+  assert.ok(!appJs.includes('其他輔助用電'));
+  assert.ok(appJs.includes('pue=it>0?facilityTotalKw/it:null'));
 });
